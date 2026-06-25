@@ -20,21 +20,26 @@
         android:theme="@style/Theme.VolumeQ"
         tools:targetApi="31">
 
+        <!-- Main launcher activity — solid dark theme, not translucent -->
         <activity
             android:name=".VolumeQApp"
             android:exported="true"
-            android:theme="@style/Theme.VolumeQ">
+            android:theme="@style/Theme.VolumeQ"
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
+        <!-- Background service — always running (START_STICKY) -->
         <service
             android:name=".service.VolumeService"
             android:exported="false"
-            android:foregroundServiceType="mediaPlayback" />
+            android:foregroundServiceType="mediaPlayback"
+            android:stopWithTask="false" />
 
+        <!-- Quick Settings Tile -->
         <service
             android:name=".tile.VolumeTileService"
             android:exported="true"
@@ -46,11 +51,13 @@
             </intent-filter>
         </service>
 
+        <!-- Boot receiver — restart service after reboot -->
         <receiver
             android:name=".service.BootReceiver"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
 

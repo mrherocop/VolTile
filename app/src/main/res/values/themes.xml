@@ -1,6 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Main app theme: solid dark background, no action bar -->
     <style name="Theme.VolumeQ" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:windowBackground">#0D0D1A</item>
+        <item name="android:statusBarColor">#0D0D1A</item>
+        <item name="android:navigationBarColor">#0D0D1A</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+
+    <!-- Overlay theme used when launched from the QS Tile -->
+    <style name="Theme.VolumeQ.Overlay" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:colorBackgroundCacheHint">@null</item>

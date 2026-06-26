@@ -43,7 +43,7 @@
         <service
             android:name=".tile.VolumeTileService"
             android:exported="true"
-            android:label="@string/app_name"
+            android:label="Volume"
             android:icon="@drawable/ic_volume_outline"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
             <intent-filter>

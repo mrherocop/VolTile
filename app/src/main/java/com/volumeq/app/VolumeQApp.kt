@@ -1,8 +1,7 @@
 package com.volumeq.app
 
-import android.app.NotificationManager
-import android.content.Context
 import android.content.Intent
+import android.media.AudioManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -10,9 +9,11 @@ import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -24,10 +25,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.volumeq.app.audio.VolumeState
 import com.volumeq.app.service.VolumeService
 import com.volumeq.app.ui.theme.VolumeQTheme
 import com.volumeq.app.viewmodel.VolumeViewModel
@@ -36,12 +42,12 @@ class VolumeQApp : ComponentActivity() {
 
     private val notificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { /* handled silently */ }
+    ) { /* silently handled */ }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Always start the background service
+        // Ensure the background service is running every time the app opens
         startVolumeService()
 
         // Request notification permission on Android 13+
@@ -51,16 +57,28 @@ class VolumeQApp : ComponentActivity() {
 
         setContent {
             VolumeQTheme {
-                val viewModel: VolumeViewModel = viewModel()
-                val state by viewModel.volumeState.collectAsState()
+                val vm: VolumeViewModel = viewModel()
+                val state by vm.volumeState.collectAsState()
+
+                // Refresh volume state whenever the app comes back to the foreground
+                val lifecycle = LocalLifecycleOwner.current.lifecycle
+                DisposableEffect(lifecycle) {
+                    val observer = LifecycleEventObserver { _, event ->
+                        if (event == Lifecycle.Event.ON_RESUME) vm.refresh()
+                    }
+                    lifecycle.addObserver(observer)
+                    onDispose { lifecycle.removeObserver(observer) }
+                }
+
                 MainScreen(
                     state = state,
-                    onMediaVolumeChange = viewModel::setMediaVolume,
-                    onRingVolumeChange = viewModel::setRingVolume,
-                    onAlarmVolumeChange = viewModel::setAlarmVolume,
-                    onNotificationVolumeChange = viewModel::setNotificationVolume,
-                    onCallVolumeChange = viewModel::setCallVolume,
-                    onRequestBatteryOptimization = { requestBatteryOptimization() }
+                    onMediaVolumeChange = vm::setMediaVolume,
+                    onRingVolumeChange = vm::setRingVolume,
+                    onAlarmVolumeChange = vm::setAlarmVolume,
+                    onNotificationVolumeChange = vm::setNotificationVolume,
+                    onCallVolumeChange = vm::setCallVolume,
+                    onToggleRingerMode = vm::toggleRingerMode,
+                    onRequestBatteryOptimization = ::requestBatteryOptimization
                 )
             }
         }
@@ -77,76 +95,92 @@ class VolumeQApp : ComponentActivity() {
 
     private fun requestBatteryOptimization() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
-                data = Uri.parse("package:$packageName")
+            runCatching {
+                startActivity(
+                    Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                        data = Uri.parse("package:$packageName")
+                    }
+                )
+            }.onFailure {
+                // Fallback: open battery settings page if direct intent is blocked
+                startActivity(Intent(Settings.ACTION_BATTERY_SAVER_SETTINGS))
             }
-            startActivity(intent)
         }
     }
 }
 
+// ──────────────────────────────────────────────────────────────
+// Main Screen
+// ──────────────────────────────────────────────────────────────
+
 @Composable
 fun MainScreen(
-    state: com.volumeq.app.audio.VolumeState,
+    state: VolumeState,
     onMediaVolumeChange: (Int) -> Unit,
     onRingVolumeChange: (Int) -> Unit,
     onAlarmVolumeChange: (Int) -> Unit,
     onNotificationVolumeChange: (Int) -> Unit,
     onCallVolumeChange: (Int) -> Unit,
+    onToggleRingerMode: () -> Unit,
     onRequestBatteryOptimization: () -> Unit
 ) {
-    val background = Brush.verticalGradient(
-        colors = listOf(Color(0xFF0D0D1A), Color(0xFF12122A))
-    )
-
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(background)
+            .background(
+                Brush.verticalGradient(
+                    listOf(Color(0xFF0D0D1A), Color(0xFF0F0F22))
+                )
+            )
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 28.dp),
+                .statusBarsPadding()
+                .navigationBarsPadding()
+                .padding(horizontal = 20.dp, vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Header
+
+            // ── Header ───────────────────────────────────────
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
                     imageVector = Icons.Outlined.GraphicEq,
-                    contentDescription = "VolTile",
+                    contentDescription = null,
                     tint = Color(0xFF7B8FFF),
-                    modifier = Modifier.size(28.dp)
+                    modifier = Modifier.size(30.dp)
                 )
-                Spacer(modifier = Modifier.width(10.dp))
+                Spacer(Modifier.width(10.dp))
                 Text(
-                    text = "VolTile",
+                    "VolTile",
                     color = Color.White,
-                    fontSize = 26.sp,
-                    fontWeight = FontWeight.Bold
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = (-0.5).sp
                 )
-                Spacer(modifier = Modifier.weight(1f))
+                Spacer(Modifier.weight(1f))
+                // Always-On pill
                 Surface(
-                    shape = RoundedCornerShape(20.dp),
-                    color = Color(0xFF1B2C6B)
+                    shape = RoundedCornerShape(50.dp),
+                    color = Color(0xFF1A2E1A)
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(8.dp)
-                                .clip(RoundedCornerShape(50))
+                                .size(7.dp)
+                                .clip(CircleShape)
                                 .background(Color(0xFF4CAF50))
                         )
-                        Spacer(modifier = Modifier.width(6.dp))
+                        Spacer(Modifier.width(6.dp))
                         Text(
-                            text = "Always On",
+                            "Active",
                             color = Color(0xFF4CAF50),
                             fontSize = 12.sp,
                             fontWeight = FontWeight.SemiBold
@@ -155,60 +189,72 @@ fun MainScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(Modifier.height(4.dp))
             Text(
-                text = "Background service active · Use the Quick Settings tile anytime",
-                color = Color(0xFF666899),
+                "24/7 background service · tap the QS tile anytime",
+                color = Color(0xFF555577),
                 fontSize = 12.sp,
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(Modifier.height(24.dp))
 
-            // Volume sliders card
-            Surface(
+            // ── Ringer Mode Row ──────────────────────────────
+            RingerModeCard(
+                ringerMode = state.ringerMode,
+                onToggle = onToggleRingerMode
+            )
+
+            Spacer(Modifier.height(16.dp))
+
+            // ── Volume Controls Card ─────────────────────────
+            Card(
                 shape = RoundedCornerShape(20.dp),
-                color = Color(0xFF141428),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF131325)),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
+                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
                     Text(
-                        text = "Volume Controls",
+                        "Volume Controls",
                         color = Color.White,
                         fontWeight = FontWeight.SemiBold,
-                        fontSize = 16.sp,
-                        modifier = Modifier.padding(bottom = 12.dp)
+                        fontSize = 15.sp,
+                        modifier = Modifier.padding(bottom = 8.dp, start = 4.dp)
                     )
 
-                    VolumeSliderRow(
-                        icon = Icons.Outlined.PlayArrow,
+                    VolumeRow(
+                        icon = Icons.Outlined.MusicNote,
                         label = "Media",
                         value = state.mediaVolume,
                         max = state.mediaMax,
                         onValueChange = onMediaVolumeChange
                     )
-                    VolumeSliderRow(
-                        icon = Icons.Outlined.Notifications,
+                    HorizontalDivider(color = Color(0xFF1E1E3A), thickness = 0.5.dp)
+                    VolumeRow(
+                        icon = Icons.Outlined.RingVolume,
                         label = "Ring",
                         value = state.ringVolume,
                         max = state.ringMax,
                         onValueChange = onRingVolumeChange
                     )
-                    VolumeSliderRow(
+                    HorizontalDivider(color = Color(0xFF1E1E3A), thickness = 0.5.dp)
+                    VolumeRow(
                         icon = Icons.Outlined.Alarm,
                         label = "Alarm",
                         value = state.alarmVolume,
                         max = state.alarmMax,
                         onValueChange = onAlarmVolumeChange
                     )
-                    VolumeSliderRow(
-                        icon = Icons.Outlined.NotificationsActive,
-                        label = "Notification",
+                    HorizontalDivider(color = Color(0xFF1E1E3A), thickness = 0.5.dp)
+                    VolumeRow(
+                        icon = Icons.Outlined.NotificationsNone,
+                        label = "Notif.",
                         value = state.notificationVolume,
                         max = state.notificationMax,
                         onValueChange = onNotificationVolumeChange
                     )
-                    VolumeSliderRow(
+                    HorizontalDivider(color = Color(0xFF1E1E3A), thickness = 0.5.dp)
+                    VolumeRow(
                         icon = Icons.Outlined.Call,
                         label = "Call",
                         value = state.callVolume,
@@ -218,101 +264,194 @@ fun MainScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(Modifier.height(16.dp))
 
-            // How to use card
-            Surface(
+            // ── Quick Settings Tile Guide ────────────────────
+            Card(
                 shape = RoundedCornerShape(20.dp),
-                color = Color(0xFF141428),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF131325)),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "Quick Access Tile",
-                        color = Color.White,
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 16.sp
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "1. Swipe down twice from the top of your screen.\n2. Tap the edit/pencil icon in Quick Settings.\n3. Find and drag the VolTile tile into your panel.\n4. Tap it anytime to control all your volumes instantly.",
-                        color = Color(0xFF888AAA),
-                        fontSize = 13.sp,
-                        lineHeight = 20.sp
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Outlined.TouchApp,
+                            contentDescription = null,
+                            tint = Color(0xFF7B8FFF),
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            "Quick Settings Tile",
+                            color = Color.White,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 15.sp
+                        )
+                    }
+                    Spacer(Modifier.height(10.dp))
+                    listOf(
+                        "Swipe down twice to open Quick Settings.",
+                        "Tap the pencil/edit icon.",
+                        "Drag the VolTile tile into your panel.",
+                        "Tap the tile anytime to open this screen."
+                    ).forEachIndexed { i, step ->
+                        Row(modifier = Modifier.padding(vertical = 3.dp)) {
+                            Text(
+                                "${i + 1}.",
+                                color = Color(0xFF7B8FFF),
+                                fontSize = 13.sp,
+                                modifier = Modifier.width(20.dp)
+                            )
+                            Text(step, color = Color(0xFF888AAA), fontSize = 13.sp)
+                        }
+                    }
                 }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(Modifier.height(16.dp))
 
-            // Battery optimisation button
+            // ── Battery Optimisation Button ──────────────────
             OutlinedButton(
                 onClick = onRequestBatteryOptimization,
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(14.dp),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF7B8FFF)),
-                border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF7B8FFF))
+                border = ButtonDefaults.outlinedButtonBorder.copy(
+                    width = 1.dp
+                )
             ) {
-                Icon(Icons.Outlined.BatteryChargingFull, contentDescription = null, modifier = Modifier.size(18.dp))
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Disable Battery Optimisation (for 24/7 service)")
+                Icon(
+                    Icons.Outlined.BatteryChargingFull,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(Modifier.width(8.dp))
+                Text("Disable Battery Optimisation (for 24/7)")
+            }
+
+            Spacer(Modifier.height(8.dp))
+        }
+    }
+}
+
+// ──────────────────────────────────────────────────────────────
+// Ringer Mode Card
+// ──────────────────────────────────────────────────────────────
+
+@Composable
+fun RingerModeCard(ringerMode: Int, onToggle: () -> Unit) {
+    val (icon, label, tint) = when (ringerMode) {
+        AudioManager.RINGER_MODE_VIBRATE -> Triple(Icons.Outlined.Vibration, "Vibrate", Color(0xFF7B8FFF))
+        AudioManager.RINGER_MODE_SILENT -> Triple(Icons.Outlined.VolumeOff, "Silent", Color(0xFFFF6B6B))
+        else -> Triple(Icons.Outlined.VolumeUp, "Sound On", Color(0xFF4CAF50))
+    }
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF131325)),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(22.dp))
+            Spacer(Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text("Ringer Mode", color = Color(0xFF888AAA), fontSize = 11.sp)
+                Text(label, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            }
+            FilledTonalButton(
+                onClick = onToggle,
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.filledTonalButtonColors(
+                    containerColor = Color(0xFF1E1E3A),
+                    contentColor = Color(0xFF7B8FFF)
+                ),
+                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
+            ) {
+                Text("Switch", fontSize = 12.sp)
             }
         }
     }
 }
 
+// ──────────────────────────────────────────────────────────────
+// Volume Row with mute-toggle button + slider + percentage
+// ──────────────────────────────────────────────────────────────
+
 @Composable
-fun VolumeSliderRow(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+fun VolumeRow(
+    icon: ImageVector,
     label: String,
     value: Int,
     max: Int,
     onValueChange: (Int) -> Unit
 ) {
     val isMuted = value == 0
-    Column(modifier = Modifier
-        .fillMaxWidth()
-        .padding(vertical = 6.dp)) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
+    val fraction = if (max > 0) value.toFloat() / max.toFloat() else 0f
+    val pct = (fraction * 100).toInt()
+
+    // Animate the slider value for smoother visual feedback
+    val animatedValue by animateFloatAsState(
+        targetValue = value.toFloat(),
+        label = "$label slider animation"
+    )
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Mute / unmute button – tapping icon toggles mute
+        IconButton(
+            onClick = {
+                if (isMuted) onValueChange(max / 2) else onValueChange(0)
+            },
+            modifier = Modifier.size(40.dp)
         ) {
-            IconButton(
-                onClick = { onValueChange(if (isMuted) max / 2 else 0) },
-                modifier = Modifier.size(36.dp)
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = "$label mute toggle",
-                    tint = if (isMuted) Color(0xFF555577) else Color(0xFF7B8FFF),
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(
-                text = label,
-                color = Color(0xFFCCCCEE),
-                fontSize = 13.sp,
-                modifier = Modifier.width(80.dp)
-            )
-            Slider(
-                value = value.toFloat(),
-                onValueChange = { onValueChange(it.toInt()) },
-                valueRange = 0f..max.toFloat().coerceAtLeast(1f),
-                modifier = Modifier.weight(1f),
-                colors = SliderDefaults.colors(
-                    thumbColor = Color(0xFF7B8FFF),
-                    activeTrackColor = Color(0xFF7B8FFF),
-                    inactiveTrackColor = Color(0xFF2A2A4A)
-                )
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = if (max > 0) "${((value.toFloat() / max.toFloat()) * 100).toInt()}%" else "0%",
-                color = Color(0xFF888AAA),
-                fontSize = 12.sp,
-                modifier = Modifier.width(36.dp)
+            Icon(
+                imageVector = icon,
+                contentDescription = if (isMuted) "Unmute $label" else "Mute $label",
+                tint = if (isMuted) Color(0xFF444466) else Color(0xFF7B8FFF),
+                modifier = Modifier.size(22.dp)
             )
         }
+
+        Spacer(Modifier.width(2.dp))
+
+        // Label
+        Text(
+            text = label,
+            color = if (isMuted) Color(0xFF555577) else Color(0xFFCCCCEE),
+            fontSize = 13.sp,
+            modifier = Modifier.width(46.dp)
+        )
+
+        // Slider
+        Slider(
+            value = animatedValue,
+            onValueChange = { onValueChange(it.toInt()) },
+            valueRange = 0f..max.toFloat().coerceAtLeast(1f),
+            modifier = Modifier.weight(1f),
+            colors = SliderDefaults.colors(
+                thumbColor = if (isMuted) Color(0xFF444466) else Color(0xFF7B8FFF),
+                activeTrackColor = if (isMuted) Color(0xFF333355) else Color(0xFF7B8FFF),
+                inactiveTrackColor = Color(0xFF202038)
+            )
+        )
+
+        Spacer(Modifier.width(8.dp))
+
+        // Percentage label – fixed width so layout doesn't jump
+        Text(
+            text = "$pct%",
+            color = if (isMuted) Color(0xFF444466) else Color(0xFF888AAA),
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier.width(34.dp)
+        )
     }
 }

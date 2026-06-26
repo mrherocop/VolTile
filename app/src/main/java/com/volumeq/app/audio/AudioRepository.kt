@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.update
 
 class AudioRepository(private val context: Context) {
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-    
+
     private val _volumeState = MutableStateFlow(VolumeState())
     val volumeState: StateFlow<VolumeState> = _volumeState.asStateFlow()
 
@@ -18,8 +18,8 @@ class AudioRepository(private val context: Context) {
     }
 
     fun updateState() {
-        _volumeState.update { current ->
-            current.copy(
+        _volumeState.update {
+            VolumeState(
                 mediaVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC),
                 mediaMax = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC),
                 ringVolume = audioManager.getStreamVolume(AudioManager.STREAM_RING),
@@ -36,10 +36,11 @@ class AudioRepository(private val context: Context) {
     }
 
     fun setStreamVolume(streamType: Int, volume: Int) {
-        audioManager.setStreamVolume(streamType, volume, 0)
+        // FLAG_SHOW_UI shows the system volume bar so the user gets visual feedback
+        audioManager.setStreamVolume(streamType, volume, AudioManager.FLAG_SHOW_UI)
         updateState()
     }
-    
+
     fun setRingerMode(mode: Int) {
         audioManager.ringerMode = mode
         updateState()

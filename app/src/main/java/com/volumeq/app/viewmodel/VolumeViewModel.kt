@@ -11,7 +11,8 @@ class VolumeViewModel(application: Application) : AndroidViewModel(application) 
     private val repository = AudioRepository(application)
     val volumeState: StateFlow<VolumeState> = repository.volumeState
 
-    fun updateState() {
+    /** Call this from the Activity's onResume so state refreshes if another app changed volume */
+    fun refresh() {
         repository.updateState()
     }
 
@@ -34,7 +35,7 @@ class VolumeViewModel(application: Application) : AndroidViewModel(application) 
     fun setCallVolume(volume: Int) {
         repository.setStreamVolume(AudioManager.STREAM_VOICE_CALL, volume)
     }
-    
+
     fun toggleRingerMode() {
         val current = volumeState.value.ringerMode
         val next = when (current) {

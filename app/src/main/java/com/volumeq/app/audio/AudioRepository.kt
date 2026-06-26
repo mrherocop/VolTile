@@ -2,6 +2,7 @@ package com.volumeq.app.audio
 
 import android.content.Context
 import android.media.AudioManager
+import android.os.Build
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -9,6 +10,7 @@ import kotlinx.coroutines.flow.update
 
 class AudioRepository(private val context: Context) {
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+    private val appVolumeMap = mutableMapOf<String, Int>()
 
     private val _volumeState = MutableStateFlow(VolumeState())
     val volumeState: StateFlow<VolumeState> = _volumeState.asStateFlow()
@@ -18,6 +20,7 @@ class AudioRepository(private val context: Context) {
     }
 
     fun updateState() {
+        val activeAppsList = getActiveAudioApps()
         _volumeState.update {
             VolumeState(
                 mediaVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC),
@@ -30,13 +33,13 @@ class AudioRepository(private val context: Context) {
                 notificationMax = audioManager.getStreamMaxVolume(AudioManager.STREAM_NOTIFICATION),
                 callVolume = audioManager.getStreamVolume(AudioManager.STREAM_VOICE_CALL),
                 callMax = audioManager.getStreamMaxVolume(AudioManager.STREAM_VOICE_CALL),
-                ringerMode = audioManager.ringerMode
+                ringerMode = audioManager.ringerMode,
+                activeApps = activeAppsList
             )
         }
     }
 
     fun setStreamVolume(streamType: Int, volume: Int) {
-        // FLAG_SHOW_UI shows the system volume bar so the user gets visual feedback
         audioManager.setStreamVolume(streamType, volume, AudioManager.FLAG_SHOW_UI)
         updateState()
     }
@@ -44,5 +47,37 @@ class AudioRepository(private val context: Context) {
     fun setRingerMode(mode: Int) {
         audioManager.ringerMode = mode
         updateState()
+    }
+
+    fun setAppVolume(packageName: String, volume: Int) {
+        appVolumeMap[packageName] = volume
+        updateState()
+    }
+
+    private fun getActiveAudioApps(): List<ActiveAppAudio> {
+        val list = mutableListOf<ActiveAppAudio>()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val configs = audioManager.activePlaybackConfigurations
+            val pm = context.packageManager
+            for (config in configs) {
+                val uid = config.clientUid
+                val packages = pm.getPackagesForUid(uid)
+                if (!packages.isNullOrEmpty()) {
+                    val pkgName = packages[0]
+                    if (pkgName == context.packageName) continue
+
+                    val appLabel = runCatching {
+                        val appInfo = pm.getApplicationInfo(pkgName, 0)
+                        pm.getApplicationLabel(appInfo).toString()
+                    }.getOrDefault(pkgName)
+
+                    val vol = appVolumeMap[pkgName] ?: 100
+                    if (list.none { it.packageName == pkgName }) {
+                        list.add(ActiveAppAudio(pkgName, appLabel, vol))
+                    }
+                }
+            }
+        }
+        return list
     }
 }

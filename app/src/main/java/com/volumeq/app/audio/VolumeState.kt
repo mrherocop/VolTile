@@ -1,5 +1,11 @@
 package com.volumeq.app.audio
 
+data class ActiveAppAudio(
+    val packageName: String,
+    val appName: String,
+    val volume: Int = 100 // 0 to 100%
+)
+
 data class VolumeState(
     val mediaVolume: Int = 0,
     val mediaMax: Int = 15,
@@ -16,5 +22,6 @@ data class VolumeState(
     val isAlarmMuted: Boolean = false,
     val isNotificationMuted: Boolean = false,
     val isCallMuted: Boolean = false,
-    val ringerMode: Int = 2 // AudioManager.RINGER_MODE_NORMAL
+    val ringerMode: Int = 2, // AudioManager.RINGER_MODE_NORMAL
+    val activeApps: List<ActiveAppAudio> = emptyList()
 )

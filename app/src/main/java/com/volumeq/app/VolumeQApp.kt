@@ -9,8 +9,10 @@ import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -31,12 +33,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -100,6 +105,7 @@ class VolumeQApp : ComponentActivity() {
                     onNotification = vm::setNotificationVolume,
                     onCall         = vm::setCallVolume,
                     onRingerToggle = vm::toggleRingerMode,
+                    onAppVolume    = vm::setAppVolume,
                     onBatteryOpt   = ::requestBatteryOptimization
                 )
             }
@@ -136,6 +142,7 @@ fun MainScreen(
     onNotification: (Int) -> Unit,
     onCall: (Int) -> Unit,
     onRingerToggle: () -> Unit,
+    onAppVolume: (String, Int) -> Unit,
     onBatteryOpt: () -> Unit,
 ) {
     Box(
@@ -169,6 +176,8 @@ fun MainScreen(
             RingerModeRow(state.ringerMode, onRingerToggle)
             Spacer(Modifier.height(20.dp))
             VolumeCard(state, onMedia, onRing, onAlarm, onNotification, onCall)
+            Spacer(Modifier.height(16.dp))
+            AppMixerSection(state.activeApps, onAppVolume)
             Spacer(Modifier.height(16.dp))
             HowToCard()
             Spacer(Modifier.height(12.dp))
@@ -298,7 +307,6 @@ fun RingerModeRow(mode: Int, onToggle: () -> Unit) {
                                 interactionSource = remember { MutableInteractionSource() },
                                 indication = null,
                                 onClick = {
-                                    // Cycle until we land on this option
                                     if (mode != opt.value) onToggle()
                                 }
                             )
@@ -378,7 +386,6 @@ fun VolumeRow(
             .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Icon with background circle
         Box(
             modifier = Modifier
                 .size(36.dp)
@@ -431,6 +438,190 @@ fun VolumeRow(
                     inactiveTrackColor = Border,
                     activeTickColor = Color.Transparent,
                     inactiveTickColor = Color.Transparent,
+                )
+            )
+        }
+    }
+}
+
+// ─── Per-App Volume Section ──────────────────────────────────
+@Composable
+fun AppMixerSection(
+    activeApps: List<com.volumeq.app.audio.ActiveAppAudio>,
+    onAppVolumeChange: (String, Int) -> Unit
+) {
+    var expanded by remember { mutableStateOf(true) }
+    var showInfoDialog by remember { mutableStateOf(false) }
+
+    if (showInfoDialog) {
+        AlertDialog(
+            onDismissRequest = { showInfoDialog = false },
+            confirmButton = {
+                TextButton(onClick = { showInfoDialog = false }) {
+                    Text("OK", color = AccBlue)
+                }
+            },
+            title = {
+                Text("About Per-App Volume", color = TextHi, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            },
+            text = {
+                Text(
+                    "Standard Android does not support absolute per-app volume adjustments without root permissions. " +
+                    "This section lists active audio playing sessions on a best-effort basis, and adjusting sliders " +
+                    "scales their relative volume within the system's music stream.",
+                    color = TextMid,
+                    fontSize = 13.sp
+                )
+            },
+            containerColor = BgCard,
+            tonalElevation = 6.dp
+        )
+    }
+
+    GlassCard {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null
+                    ) { expanded = !expanded },
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    "APP VOLUMES",
+                    color = TextLow,
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.5.sp,
+                    modifier = Modifier.weight(1f)
+                )
+
+                IconButton(
+                    onClick = { showInfoDialog = true },
+                    modifier = Modifier.size(24.dp)
+                ) {
+                    Icon(
+                        Icons.Outlined.Info,
+                        contentDescription = "Per-app info",
+                        tint = TextLow,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+
+                Spacer(Modifier.width(8.dp))
+
+                Icon(
+                    imageVector = if (expanded) Icons.Outlined.KeyboardArrowUp else Icons.Outlined.KeyboardArrowDown,
+                    contentDescription = if (expanded) "Collapse" else "Expand",
+                    tint = TextMid,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+
+            AnimatedVisibility(visible = expanded) {
+                Column(modifier = Modifier.padding(top = 12.dp)) {
+                    if (activeApps.isEmpty()) {
+                        Text(
+                            "No active audio playing apps detected.",
+                            color = TextLow,
+                            fontSize = 12.sp,
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
+                    } else {
+                        activeApps.forEachIndexed { index, app ->
+                            if (index > 0) {
+                                Divider(color = Color(0xFF1E2240), thickness = 0.5.dp, modifier = Modifier.padding(vertical = 8.dp))
+                            }
+                            AppVolumeRow(app = app, onVolumeChange = { onAppVolumeChange(app.packageName, it) })
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun AppVolumeRow(
+    app: com.volumeq.app.audio.ActiveAppAudio,
+    onVolumeChange: (Int) -> Unit
+) {
+    val context = LocalContext.current
+    val pm = remember(context) { context.packageManager }
+    val appIcon = remember(app.packageName) {
+        runCatching {
+            pm.getApplicationIcon(app.packageName)
+        }.getOrNull()
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if (appIcon != null) {
+            Image(
+                bitmap = remember(appIcon) { androidx.core.graphics.drawable.toBitmap(appIcon).asImageBitmap() },
+                contentDescription = "${app.appName} icon",
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(RoundedCornerShape(8.dp))
+            )
+        } else {
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(BgStrip),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Outlined.MusicNote,
+                    contentDescription = null,
+                    tint = TextLow,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+        }
+
+        Spacer(Modifier.width(12.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    app.appName,
+                    color = TextMid,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    "${app.volume}%",
+                    color = AccBlue,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+            Spacer(Modifier.height(4.dp))
+            Slider(
+                value = app.volume.toFloat(),
+                onValueChange = { onVolumeChange(it.toInt()) },
+                valueRange = 0f..100f,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(28.dp),
+                colors = SliderDefaults.colors(
+                    thumbColor = AccBlue,
+                    activeTrackColor = AccBlue,
+                    inactiveTrackColor = Border,
+                    activeTickColor = Color.Transparent,
+                    inactiveTickColor = Color.Transparent
                 )
             )
         }

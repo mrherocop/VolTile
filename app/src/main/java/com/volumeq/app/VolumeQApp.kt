@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.volumeq.app.audio.VolumeState
 import com.volumeq.app.service.VolumeService
@@ -229,7 +229,7 @@ fun MainScreen(
                         max = state.mediaMax,
                         onValueChange = onMediaVolumeChange
                     )
-                    HorizontalDivider(color = Color(0xFF1E1E3A), thickness = 0.5.dp)
+                    Divider(color = Color(0xFF1E1E3A), thickness = 0.5.dp)
                     VolumeRow(
                         icon = Icons.Outlined.RingVolume,
                         label = "Ring",
@@ -237,7 +237,7 @@ fun MainScreen(
                         max = state.ringMax,
                         onValueChange = onRingVolumeChange
                     )
-                    HorizontalDivider(color = Color(0xFF1E1E3A), thickness = 0.5.dp)
+                    Divider(color = Color(0xFF1E1E3A), thickness = 0.5.dp)
                     VolumeRow(
                         icon = Icons.Outlined.Alarm,
                         label = "Alarm",
@@ -245,7 +245,7 @@ fun MainScreen(
                         max = state.alarmMax,
                         onValueChange = onAlarmVolumeChange
                     )
-                    HorizontalDivider(color = Color(0xFF1E1E3A), thickness = 0.5.dp)
+                    Divider(color = Color(0xFF1E1E3A), thickness = 0.5.dp)
                     VolumeRow(
                         icon = Icons.Outlined.NotificationsNone,
                         label = "Notif.",
@@ -253,7 +253,7 @@ fun MainScreen(
                         max = state.notificationMax,
                         onValueChange = onNotificationVolumeChange
                     )
-                    HorizontalDivider(color = Color(0xFF1E1E3A), thickness = 0.5.dp)
+                    Divider(color = Color(0xFF1E1E3A), thickness = 0.5.dp)
                     VolumeRow(
                         icon = Icons.Outlined.Call,
                         label = "Call",

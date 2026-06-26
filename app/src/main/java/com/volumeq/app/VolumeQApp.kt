@@ -41,7 +41,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -564,7 +563,7 @@ fun AppVolumeRow(
     ) {
         if (appIcon != null) {
             Image(
-                bitmap = remember(appIcon) { androidx.core.graphics.drawable.toBitmap(appIcon).asImageBitmap() },
+                bitmap = remember(appIcon) { drawableToBitmap(appIcon).asImageBitmap() },
                 contentDescription = "${app.appName} icon",
                 modifier = Modifier
                     .size(36.dp)
@@ -726,3 +725,19 @@ fun GlassCard(content: @Composable () -> Unit) {
         content()
     }
 }
+
+private fun drawableToBitmap(drawable: android.graphics.drawable.Drawable): android.graphics.Bitmap {
+    if (drawable is android.graphics.drawable.BitmapDrawable) {
+        return drawable.bitmap
+    }
+    val bitmap = android.graphics.Bitmap.createBitmap(
+        drawable.intrinsicWidth.coerceAtLeast(1),
+        drawable.intrinsicHeight.coerceAtLeast(1),
+        android.graphics.Bitmap.Config.ARGB_8888
+    )
+    val canvas = android.graphics.Canvas(bitmap)
+    drawable.setBounds(0, 0, canvas.width, canvas.height)
+    drawable.draw(canvas)
+    return bitmap
+}
+

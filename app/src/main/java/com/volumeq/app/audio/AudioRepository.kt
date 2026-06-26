@@ -60,7 +60,12 @@ class AudioRepository(private val context: Context) {
             val configs = audioManager.activePlaybackConfigurations
             val pm = context.packageManager
             for (config in configs) {
-                val uid = config.clientUid
+                // Use reflection to call hidden getClientUid() method on AudioPlaybackConfiguration
+                val uid = runCatching {
+                    val method = config.javaClass.getMethod("getClientUid")
+                    method.invoke(config) as Int
+                }.getOrNull() ?: continue
+
                 val packages = pm.getPackagesForUid(uid)
                 if (!packages.isNullOrEmpty()) {
                     val pkgName = packages[0]

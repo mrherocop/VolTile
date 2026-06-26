@@ -42,8 +42,8 @@ jobs:
       uses: softprops/action-gh-release@v2
       with:
         files: app/build/outputs/apk/debug/app-debug.apk
-        tag_name: v2.0
-        name: VolTile v2.0 Release
+        tag_name: v2.1
+        name: VolTile v2.1 Release
         body: |
           ### VolTile – Premium Volume Control Center
 

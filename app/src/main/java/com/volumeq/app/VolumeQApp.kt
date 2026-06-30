@@ -81,9 +81,20 @@ class VolumeQApp : ComponentActivity() {
                         Column(modifier = Modifier.padding(16.dp).verticalScroll(rememberScrollState())) {
                             Text("FATAL CRASH DETECTED", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 24.sp)
                             Spacer(modifier = Modifier.height(16.dp))
-                            Text("Please screenshot this exact text and send it to me:", color = Color.White)
+                            Text("Please copy the text below and send it to me:", color = Color.White)
                             Spacer(modifier = Modifier.height(16.dp))
-                            Text(existingCrash, color = Color.White, fontSize = 10.sp, fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace)
+                            
+                            val clipboardManager = androidx.compose.ui.platform.LocalClipboardManager.current
+                            Button(onClick = {
+                                clipboardManager.setText(androidx.compose.ui.text.AnnotatedString(existingCrash))
+                            }) {
+                                Text("Copy Log to Clipboard", fontWeight = FontWeight.Bold)
+                            }
+                            Spacer(modifier = Modifier.height(16.dp))
+                            
+                            androidx.compose.foundation.text.selection.SelectionContainer {
+                                Text(existingCrash, color = Color.White, fontSize = 10.sp, fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace)
+                            }
                             Spacer(modifier = Modifier.height(24.dp))
                             Button(onClick = { 
                                 prefs.edit().remove("crash_log").apply()

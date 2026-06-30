@@ -248,8 +248,10 @@ class VolumeService : Service() {
         // 5. Build and display the foreground notification
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_volume_outline)
-            .setCustomContentView(collapsedViews)
-            .setCustomBigContentView(expandedViews)
+            .setContentTitle("SONIQ Service Active")
+            .setContentText("Volume control is running in the background.")
+            // .setCustomContentView(collapsedViews)
+            // .setCustomBigContentView(expandedViews)
             .setOngoing(true)
             .setSilent(true)
             .setPriority(NotificationCompat.PRIORITY_MIN)

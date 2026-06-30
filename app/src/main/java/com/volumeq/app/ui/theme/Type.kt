@@ -9,13 +9,11 @@ import androidx.compose.ui.unit.sp
 import com.volumeq.app.R
 
 val SpaceGroteskFamily = FontFamily(
-    Font(R.font.space_grotesk_bold, FontWeight.Bold),
-    Font(R.font.space_grotesk_bold, FontWeight.Black),
-    Font(R.font.space_grotesk_bold, FontWeight.ExtraBold),
+    Font(R.font.space_grotesk_bold)
 )
 
 val JetBrainsMonoFamily = FontFamily(
-    Font(R.font.jetbrains_mono_semibold, FontWeight.SemiBold),
+    Font(R.font.jetbrains_mono_semibold)
 )
 
 val Typography = Typography(

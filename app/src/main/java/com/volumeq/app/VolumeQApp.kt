@@ -423,7 +423,7 @@ fun SoniqSliderRow(
                 value = currentVolume.toFloat(),
                 onValueChange = { onValueChange(it.toInt()) },
                 valueRange = 0f..(maxVolume.toFloat().coerceAtLeast(1f)),
-                steps = maxVolume - 1,
+                steps = (maxVolume - 1).coerceAtLeast(0),
                 colors = SliderDefaults.colors(
                     thumbColor = Color.Transparent,
                     activeTrackColor = Color.Transparent,

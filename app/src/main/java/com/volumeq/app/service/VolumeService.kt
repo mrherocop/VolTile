@@ -159,83 +159,58 @@ class VolumeService : Service() {
         val alarmMax = am.getStreamMaxVolume(AudioManager.STREAM_ALARM).coerceAtLeast(1)
         val alarmPct = (alarmVal * 100) / alarmMax
 
-        val notifVal = am.getStreamVolume(AudioManager.STREAM_NOTIFICATION)
-        val notifMax = am.getStreamMaxVolume(AudioManager.STREAM_NOTIFICATION).coerceAtLeast(1)
-        val notifPct = (notifVal * 100) / notifMax
-
         val callVal = am.getStreamVolume(AudioManager.STREAM_VOICE_CALL)
         val callMax = am.getStreamMaxVolume(AudioManager.STREAM_VOICE_CALL).coerceAtLeast(1)
         val callPct = (callVal * 100) / callMax
 
-        // 2. Set progress bars & text in expanded view
-        expandedViews.setProgressBar(R.id.progress_media, 100, mediaPct, false)
-        expandedViews.setTextViewText(R.id.txt_media_val, "$mediaPct%")
+        // 2. Set progress/text in expanded view (SeekBar progress + % label)
+        expandedViews.setProgressBar(R.id.seek_media, mediaMax, mediaVal, false)
+        expandedViews.setTextViewText(R.id.tv_media_pct, "$mediaPct%")
 
-        expandedViews.setProgressBar(R.id.progress_ring, 100, ringPct, false)
-        expandedViews.setTextViewText(R.id.txt_ring_val, "$ringPct%")
+        expandedViews.setProgressBar(R.id.seek_ring, ringMax, ringVal, false)
+        expandedViews.setTextViewText(R.id.tv_ring_pct, "$ringPct%")
 
-        expandedViews.setProgressBar(R.id.progress_alarm, 100, alarmPct, false)
-        expandedViews.setTextViewText(R.id.txt_alarm_val, "$alarmPct%")
+        expandedViews.setProgressBar(R.id.seek_alarm, alarmMax, alarmVal, false)
+        expandedViews.setTextViewText(R.id.tv_alarm_pct, "$alarmPct%")
 
-        expandedViews.setProgressBar(R.id.progress_notification, 100, notifPct, false)
-        expandedViews.setTextViewText(R.id.txt_notification_val, "$notifPct%")
+        expandedViews.setProgressBar(R.id.seek_call, callMax, callVal, false)
+        expandedViews.setTextViewText(R.id.tv_call_pct, "$callPct%")
 
-        expandedViews.setProgressBar(R.id.progress_call, 100, callPct, false)
-        expandedViews.setTextViewText(R.id.txt_call_val, "$callPct%")
-
-        // 3. Ringer Mode Highlighting & Texts
+        // 3. Ringer Mode — update collapsed text + expanded button colors (SONIQ brutalist scheme)
         val ringerText = when (am.ringerMode) {
-            AudioManager.RINGER_MODE_NORMAL -> "Ringer: Sound On"
-            AudioManager.RINGER_MODE_VIBRATE -> "Ringer: Vibrate"
-            else -> "Ringer: Silent"
+            AudioManager.RINGER_MODE_NORMAL -> "Sound On"
+            AudioManager.RINGER_MODE_VIBRATE -> "Vibrate"
+            else -> "Silent"
         }
         collapsedViews.setTextViewText(R.id.ringer_status_text, ringerText)
 
-        // Highlight selected ringer mode in expanded view
-        val activeBg = Color.parseColor("#5B7BFF")
-        val inactiveBg = Color.parseColor("#141830")
-        val activeText = Color.parseColor("#EEEEFF")
-        val inactiveText = Color.parseColor("#8890BB")
+        // SONIQ colors: active = green #22C55E, inactive = white #FFFFFF
+        val activeModeBg  = Color.parseColor("#22C55E")
+        val inactiveModeBg = Color.parseColor("#FFFFFF")
 
-        expandedViews.setInt(R.id.btn_ringer_sound, "setBackgroundColor", if (am.ringerMode == AudioManager.RINGER_MODE_NORMAL) activeBg else inactiveBg)
-        expandedViews.setTextColor(R.id.btn_ringer_sound, if (am.ringerMode == AudioManager.RINGER_MODE_NORMAL) activeText else inactiveText)
+        expandedViews.setInt(R.id.btn_mode_sound, "setBackgroundColor",
+            if (am.ringerMode == AudioManager.RINGER_MODE_NORMAL) activeModeBg else inactiveModeBg)
+        expandedViews.setInt(R.id.btn_mode_vibrate, "setBackgroundColor",
+            if (am.ringerMode == AudioManager.RINGER_MODE_VIBRATE) activeModeBg else inactiveModeBg)
+        expandedViews.setInt(R.id.btn_mode_silent, "setBackgroundColor",
+            if (am.ringerMode == AudioManager.RINGER_MODE_SILENT) activeModeBg else inactiveModeBg)
 
-        expandedViews.setInt(R.id.btn_ringer_vibrate, "setBackgroundColor", if (am.ringerMode == AudioManager.RINGER_MODE_VIBRATE) activeBg else inactiveBg)
-        expandedViews.setTextColor(R.id.btn_ringer_vibrate, if (am.ringerMode == AudioManager.RINGER_MODE_VIBRATE) activeText else inactiveText)
-
-        expandedViews.setInt(R.id.btn_ringer_silent, "setBackgroundColor", if (am.ringerMode == AudioManager.RINGER_MODE_SILENT) activeBg else inactiveBg)
-        expandedViews.setTextColor(R.id.btn_ringer_silent, if (am.ringerMode == AudioManager.RINGER_MODE_SILENT) activeText else inactiveText)
-
-        // 4. Set Pending Intents for Buttons
-        // Collapsed View
+        // 4. Set Pending Intents
+        // Collapsed quick-toggle buttons
         collapsedViews.setOnClickPendingIntent(R.id.btn_quick_ringer, getServicePendingIntent(ACTION_RINGER_TOGGLE, 11))
         collapsedViews.setOnClickPendingIntent(R.id.btn_quick_media_mute, getServicePendingIntent(ACTION_MEDIA_MUTE, 12))
 
-        // Expanded View
+        // Expanded: "Open App" button
         val openIntent = Intent(this, VolumeQApp::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
         }
         val openPending = PendingIntent.getActivity(this, 100, openIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         expandedViews.setOnClickPendingIntent(R.id.btn_open_app, openPending)
 
-        expandedViews.setOnClickPendingIntent(R.id.btn_ringer_sound, getServicePendingIntent(ACTION_RINGER_SET, 13, ringerMode = AudioManager.RINGER_MODE_NORMAL))
-        expandedViews.setOnClickPendingIntent(R.id.btn_ringer_vibrate, getServicePendingIntent(ACTION_RINGER_SET, 14, ringerMode = AudioManager.RINGER_MODE_VIBRATE))
-        expandedViews.setOnClickPendingIntent(R.id.btn_ringer_silent, getServicePendingIntent(ACTION_RINGER_SET, 15, ringerMode = AudioManager.RINGER_MODE_SILENT))
-
-        expandedViews.setOnClickPendingIntent(R.id.btn_media_up, getServicePendingIntent(ACTION_VOLUME_UP, 1, AudioManager.STREAM_MUSIC))
-        expandedViews.setOnClickPendingIntent(R.id.btn_media_down, getServicePendingIntent(ACTION_VOLUME_DOWN, 2, AudioManager.STREAM_MUSIC))
-
-        expandedViews.setOnClickPendingIntent(R.id.btn_ring_up, getServicePendingIntent(ACTION_VOLUME_UP, 3, AudioManager.STREAM_RING))
-        expandedViews.setOnClickPendingIntent(R.id.btn_ring_down, getServicePendingIntent(ACTION_VOLUME_DOWN, 4, AudioManager.STREAM_RING))
-
-        expandedViews.setOnClickPendingIntent(R.id.btn_alarm_up, getServicePendingIntent(ACTION_VOLUME_UP, 5, AudioManager.STREAM_ALARM))
-        expandedViews.setOnClickPendingIntent(R.id.btn_alarm_down, getServicePendingIntent(ACTION_VOLUME_DOWN, 6, AudioManager.STREAM_ALARM))
-
-        expandedViews.setOnClickPendingIntent(R.id.btn_notification_up, getServicePendingIntent(ACTION_VOLUME_UP, 7, AudioManager.STREAM_NOTIFICATION))
-        expandedViews.setOnClickPendingIntent(R.id.btn_notification_down, getServicePendingIntent(ACTION_VOLUME_DOWN, 8, AudioManager.STREAM_NOTIFICATION))
-
-        expandedViews.setOnClickPendingIntent(R.id.btn_call_up, getServicePendingIntent(ACTION_VOLUME_UP, 9, AudioManager.STREAM_VOICE_CALL))
-        expandedViews.setOnClickPendingIntent(R.id.btn_call_down, getServicePendingIntent(ACTION_VOLUME_DOWN, 10, AudioManager.STREAM_VOICE_CALL))
+        // Expanded: Ringer mode buttons
+        expandedViews.setOnClickPendingIntent(R.id.btn_mode_sound, getServicePendingIntent(ACTION_RINGER_SET, 13, ringerMode = AudioManager.RINGER_MODE_NORMAL))
+        expandedViews.setOnClickPendingIntent(R.id.btn_mode_vibrate, getServicePendingIntent(ACTION_RINGER_SET, 14, ringerMode = AudioManager.RINGER_MODE_VIBRATE))
+        expandedViews.setOnClickPendingIntent(R.id.btn_mode_silent, getServicePendingIntent(ACTION_RINGER_SET, 15, ringerMode = AudioManager.RINGER_MODE_SILENT))
 
         // 5. Build and display the foreground notification
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)

@@ -42,10 +42,10 @@ jobs:
       uses: softprops/action-gh-release@v2
       with:
         files: app/build/outputs/apk/debug/app-debug.apk
-        tag_name: v4.1
-        name: SONIQ v4.1
+        tag_name: v4.2
+        name: SONIQ v4.2
         body: |
-          ## SONIQ v4.1 — Final App Renaming
+          ## SONIQ v4.2 — Startup Crash Fix (Android 14)
 
           A complete UI overhaul with a **Neo-Brutalist** design language. Electric lime-yellow, bold black borders, and hard-edge shadows — a volume control app that actually looks good.
 

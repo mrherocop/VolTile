@@ -248,7 +248,7 @@ fun SoniqHeader() {
             Text(
                 text = "SONIQ",
                 color = Black,
-                fontFamily = SpaceGroteskFamily,
+                fontFamily = androidx.compose.ui.text.font.FontFamily.SansSerif,
                 fontWeight = FontWeight.Black,
                 fontSize = 72.sp,
                 letterSpacing = (-2).sp,
@@ -340,7 +340,7 @@ fun RingerModeButton(
             Text(
                 text = label,
                 color = textColor,
-                fontFamily = SpaceGroteskFamily,
+                fontFamily = androidx.compose.ui.text.font.FontFamily.SansSerif,
                 fontWeight = FontWeight.Bold,
                 fontSize = 14.sp,
                 letterSpacing = 0.sp,
@@ -506,7 +506,7 @@ fun SoniqSliderRow(
         Text(
             text = "$pct%",
             color = Black,
-            fontFamily = SpaceGroteskFamily,
+            fontFamily = androidx.compose.ui.text.font.FontFamily.SansSerif,
             fontWeight = FontWeight.Black,
             fontSize = 20.sp,
             modifier = Modifier.width(52.dp),
@@ -534,7 +534,7 @@ fun SocialButton(
             Text(
                 text = text,
                 color = Black,
-                fontFamily = SpaceGroteskFamily,
+                fontFamily = androidx.compose.ui.text.font.FontFamily.SansSerif,
                 fontWeight = FontWeight.Black,
                 fontSize = 14.sp,
                 textAlign = TextAlign.Center
@@ -564,7 +564,7 @@ fun BatteryOptButton(onClick: () -> Unit) {
             Text(
                 text = "DISABLE BATTERY OPTIMISATION",
                 color = Black,
-                fontFamily = SpaceGroteskFamily,
+                fontFamily = androidx.compose.ui.text.font.FontFamily.SansSerif,
                 fontWeight = FontWeight.Black,
                 fontSize = 16.sp,
                 textAlign = TextAlign.Center

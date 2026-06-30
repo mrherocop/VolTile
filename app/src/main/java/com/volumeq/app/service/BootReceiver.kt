@@ -13,11 +13,15 @@ class BootReceiver : BroadcastReceiver() {
             "android.intent.action.QUICKBOOT_POWERON" // HTC/some devices
         )
         if (intent.action in validActions) {
-            val serviceIntent = Intent(context, VolumeService::class.java)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                context.startForegroundService(serviceIntent)
-            } else {
-                context.startService(serviceIntent)
+            try {
+                val serviceIntent = Intent(context, VolumeService::class.java)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    context.startForegroundService(serviceIntent)
+                } else {
+                    context.startService(serviceIntent)
+                }
+            } catch (e: Exception) {
+                // Ignore ForegroundServiceStartNotAllowedException on Android 12+ if in background
             }
         }
     }

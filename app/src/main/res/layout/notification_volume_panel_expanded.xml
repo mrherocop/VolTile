@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="256dp"
-    android:background="#0E1120"
+    android:background="#111111"
     android:orientation="vertical"
     android:padding="8dp">
 
@@ -129,6 +129,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:progressDrawable="@drawable/progress_brutalist_media"
             android:max="100"
             android:progress="50" />
 
@@ -183,6 +184,7 @@
         <ProgressBar
             android:id="@+id/progress_ring"
             style="@android:style/Widget.ProgressBar.Horizontal"
+            android:progressDrawable="@drawable/progress_brutalist_ring"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -240,6 +242,7 @@
         <ProgressBar
             android:id="@+id/progress_alarm"
             style="@android:style/Widget.ProgressBar.Horizontal"
+            android:progressDrawable="@drawable/progress_brutalist_alarm"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -297,6 +300,7 @@
         <ProgressBar
             android:id="@+id/progress_notification"
             style="@android:style/Widget.ProgressBar.Horizontal"
+            android:progressDrawable="@drawable/progress_brutalist_notif"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -354,6 +358,7 @@
         <ProgressBar
             android:id="@+id/progress_call"
             style="@android:style/Widget.ProgressBar.Horizontal"
+            android:progressDrawable="@drawable/progress_brutalist_call"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"

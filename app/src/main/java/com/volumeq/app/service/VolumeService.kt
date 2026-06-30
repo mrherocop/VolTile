@@ -200,18 +200,21 @@ class VolumeService : Service() {
         collapsedViews.setTextViewText(R.id.ringer_status_text, ringerText)
 
         // Highlight selected ringer mode in expanded view
-        val activeBg = Color.parseColor("#5B7BFF")
-        val inactiveBg = Color.parseColor("#141830")
-        val activeText = Color.parseColor("#EEEEFF")
+        val inactiveBg = Color.parseColor("#111111")
+        val activeText = Color.parseColor("#000000")
         val inactiveText = Color.parseColor("#8890BB")
 
-        expandedViews.setInt(R.id.btn_ringer_sound, "setBackgroundColor", if (am.ringerMode == AudioManager.RINGER_MODE_NORMAL) activeBg else inactiveBg)
+        val soundActive = Color.parseColor("#5B7BFF")
+        val vibrateActive = Color.parseColor("#00FFFF")
+        val silentActive = Color.parseColor("#FF00FF")
+
+        expandedViews.setInt(R.id.btn_ringer_sound, "setBackgroundColor", if (am.ringerMode == AudioManager.RINGER_MODE_NORMAL) soundActive else inactiveBg)
         expandedViews.setTextColor(R.id.btn_ringer_sound, if (am.ringerMode == AudioManager.RINGER_MODE_NORMAL) activeText else inactiveText)
 
-        expandedViews.setInt(R.id.btn_ringer_vibrate, "setBackgroundColor", if (am.ringerMode == AudioManager.RINGER_MODE_VIBRATE) activeBg else inactiveBg)
+        expandedViews.setInt(R.id.btn_ringer_vibrate, "setBackgroundColor", if (am.ringerMode == AudioManager.RINGER_MODE_VIBRATE) vibrateActive else inactiveBg)
         expandedViews.setTextColor(R.id.btn_ringer_vibrate, if (am.ringerMode == AudioManager.RINGER_MODE_VIBRATE) activeText else inactiveText)
 
-        expandedViews.setInt(R.id.btn_ringer_silent, "setBackgroundColor", if (am.ringerMode == AudioManager.RINGER_MODE_SILENT) activeBg else inactiveBg)
+        expandedViews.setInt(R.id.btn_ringer_silent, "setBackgroundColor", if (am.ringerMode == AudioManager.RINGER_MODE_SILENT) silentActive else inactiveBg)
         expandedViews.setTextColor(R.id.btn_ringer_silent, if (am.ringerMode == AudioManager.RINGER_MODE_SILENT) activeText else inactiveText)
 
         // 4. Set Pending Intents for Buttons

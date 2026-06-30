@@ -193,7 +193,7 @@ fun SoniqMainScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(Lime),
-        contentAlignment = Alignment.TopCenter
+        contentAlignment = Alignment.Center
     ) {
         Column(
             modifier = Modifier

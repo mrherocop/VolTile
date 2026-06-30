@@ -273,10 +273,10 @@ class VolumeService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "VolTile Background Service",
+                "SONIQ Volume Service",
                 NotificationManager.IMPORTANCE_MIN
             ).apply {
-                description = "Keeps VolTile running in the background for instant QS Tile access"
+                description = "Keeps SONIQ running in the background for instant QS Tile volume access"
                 setShowBadge(false)
                 setSound(null, null)
             }

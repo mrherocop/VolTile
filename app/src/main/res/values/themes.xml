@@ -1,11 +1,10 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Main app theme: solid dark, no action bar -->
-    <style name="Theme.VolumeQ" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="android:windowBackground">#0D0D1A</item>
-        <item name="android:statusBarColor">#0D0D1A</item>
-        <item name="android:navigationBarColor">#0D0D1A</item>
-        <item name="android:windowLightStatusBar">false</item>
-        <item name="android:windowNoTitle">true</item>
+    <!-- SONIQ: Force light, lime-yellow window bg, no action bar -->
+    <style name="Theme.VolumeQ" parent="Theme.Material3.Light.NoActionBar">
+        <item name="android:windowBackground">#CCFF00</item>
+        <item name="android:statusBarColor">#CCFF00</item>
+        <item name="android:navigationBarColor">#CCFF00</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
     </style>
 </resources>

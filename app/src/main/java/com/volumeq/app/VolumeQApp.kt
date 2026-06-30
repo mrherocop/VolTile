@@ -9,35 +9,27 @@ import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.*
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -46,30 +38,8 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.volumeq.app.audio.VolumeState
 import com.volumeq.app.service.VolumeService
-import com.volumeq.app.ui.theme.VolumeQTheme
+import com.volumeq.app.ui.theme.*
 import com.volumeq.app.viewmodel.VolumeViewModel
-
-// ─── Color Palette ───────────────────────────────────────────
-private val BgDeep   = Color(0xFF060914)
-private val BgCard   = Color(0xFF0E1120)
-private val BgStrip  = Color(0xFF141830)
-private val Border   = Color(0xFF1E2240)
-private val AccBlue  = Color(0xFF5B7BFF)
-private val AccGreen = Color(0xFF3DD68C)
-private val AccRed   = Color(0xFFFF5F6D)
-private val AccAmber = Color(0xFFFFB347)
-private val TextHi   = Color(0xFFEEEEFF)
-private val TextMid  = Color(0xFF8890BB)
-private val TextLow  = Color(0xFF454870)
-
-// Per-stream accent colours
-private val StreamColors = mapOf(
-    "Media"        to Color(0xFF5B7BFF),
-    "Ring"         to Color(0xFFBB6BFF),
-    "Alarm"        to Color(0xFFFF8C42),
-    "Notification" to Color(0xFFFFD166),
-    "Call"         to Color(0xFF3DD68C),
-)
 
 // ─── Activity ────────────────────────────────────────────────
 class VolumeQApp : ComponentActivity() {
@@ -96,16 +66,18 @@ class VolumeQApp : ComponentActivity() {
                     lifecycle.addObserver(obs)
                     onDispose { lifecycle.removeObserver(obs) }
                 }
-                MainScreen(
-                    state = state,
+                SoniqMainScreen(
+                    state          = state,
                     onMedia        = vm::setMediaVolume,
                     onRing         = vm::setRingVolume,
                     onAlarm        = vm::setAlarmVolume,
                     onNotification = vm::setNotificationVolume,
                     onCall         = vm::setCallVolume,
-                    onRingerToggle = vm::toggleRingerMode,
-                    onAppVolume    = vm::setAppVolume,
-                    onBatteryOpt   = ::requestBatteryOptimization
+                    onRingerMode   = { vm.setRingerMode(it) },
+                    onBatteryOpt   = ::requestBatteryOptimization,
+                    onGitHub       = { openUrl("https://github.com/mrherocop/VolTile") },
+                    onLinkedIn     = { openUrl("https://www.linkedin.com/") },
+                    onInstagram    = { openUrl("https://www.instagram.com/") },
                 )
             }
         }
@@ -113,8 +85,7 @@ class VolumeQApp : ComponentActivity() {
 
     private fun startVolumeService() {
         val i = Intent(this, VolumeService::class.java)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(i)
-        else startService(i)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(i) else startService(i)
     }
 
     private fun requestBatteryOptimization() {
@@ -124,620 +95,444 @@ class VolumeQApp : ComponentActivity() {
                     Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
                         .apply { data = Uri.parse("package:$packageName") }
                 )
-            }.onFailure {
-                startActivity(Intent(Settings.ACTION_BATTERY_SAVER_SETTINGS))
-            }
+            }.onFailure { startActivity(Intent(Settings.ACTION_BATTERY_SAVER_SETTINGS)) }
         }
+    }
+
+    private fun openUrl(url: String) {
+        runCatching { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
     }
 }
 
 // ─── Root Screen ─────────────────────────────────────────────
 @Composable
-fun MainScreen(
+fun SoniqMainScreen(
     state: VolumeState,
     onMedia: (Int) -> Unit,
     onRing: (Int) -> Unit,
     onAlarm: (Int) -> Unit,
     onNotification: (Int) -> Unit,
     onCall: (Int) -> Unit,
-    onRingerToggle: () -> Unit,
-    onAppVolume: (String, Int) -> Unit,
+    onRingerMode: (Int) -> Unit,
     onBatteryOpt: () -> Unit,
+    onGitHub: () -> Unit,
+    onLinkedIn: () -> Unit,
+    onInstagram: () -> Unit,
 ) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BgDeep)
+            .background(Lime),
+        contentAlignment = Alignment.TopCenter
     ) {
-        // Decorative glow blob top-right
-        Box(
-            modifier = Modifier
-                .size(280.dp)
-                .offset(x = 100.dp, y = (-60).dp)
-                .align(Alignment.TopEnd)
-                .background(
-                    Brush.radialGradient(listOf(AccBlue.copy(alpha = .15f), Color.Transparent)),
-                    CircleShape
-                )
-                .blur(60.dp)
-        )
-
         Column(
             modifier = Modifier
-                .fillMaxSize()
+                .widthIn(max = 450.dp)
+                .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
                 .statusBarsPadding()
                 .navigationBarsPadding()
-                .padding(horizontal = 18.dp, vertical = 12.dp)
+                .padding(horizontal = 20.dp, vertical = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            HeaderRow()
-            Spacer(Modifier.height(20.dp))
-            RingerModeRow(state.ringerMode, onRingerToggle)
-            Spacer(Modifier.height(20.dp))
-            VolumeCard(state, onMedia, onRing, onAlarm, onNotification, onCall)
-            Spacer(Modifier.height(16.dp))
-            AppMixerSection(state.activeApps, onAppVolume)
-            Spacer(Modifier.height(16.dp))
-            HowToCard()
-            Spacer(Modifier.height(12.dp))
-            BatteryButton(onBatteryOpt)
-            Spacer(Modifier.height(8.dp))
+            // ── Header ──
+            SoniqHeader()
+
+            // ── Ringer Mode Buttons ──
+            RingerModeSection(state.ringerMode, onRingerMode)
+
+            // ── Volume Streams ──
+            VolumeStreamsCard(state, onMedia, onRing, onAlarm, onCall, onNotification)
+
+            // ── Link Buttons ──
+            LinkButtonsRow(onGitHub, onLinkedIn, onInstagram)
+
+            // ── Battery Button ──
+            BatteryOptButton(onBatteryOpt)
         }
     }
 }
 
 // ─── Header ──────────────────────────────────────────────────
 @Composable
-fun HeaderRow() {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
+fun SoniqHeader() {
+    BrutalistCard(
+        background = White,
+        shadowOffset = 8.dp
     ) {
-        // App icon circle
         Box(
             modifier = Modifier
-                .size(46.dp)
-                .clip(RoundedCornerShape(14.dp))
-                .background(
-                    Brush.linearGradient(listOf(Color(0xFF2A3BCC), AccBlue))
-                ),
+                .fillMaxWidth()
+                .padding(vertical = 20.dp),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                Icons.Outlined.GraphicEq,
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier.size(24.dp)
+            Text(
+                text = "SONIQ",
+                color = Black,
+                fontFamily = SpaceGroteskFamily,
+                fontWeight = FontWeight.Black,
+                fontSize = 72.sp,
+                letterSpacing = (-2).sp,
+                lineHeight = 72.sp,
+                textAlign = TextAlign.Center,
             )
         }
-        Spacer(Modifier.width(12.dp))
-        Column {
-            Text(
-                "VolTile",
-                color = TextHi,
-                fontSize = 22.sp,
-                fontWeight = FontWeight.ExtraBold,
-                letterSpacing = (-0.5).sp
-            )
-            Text(
-                "Volume Manager",
-                color = TextLow,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Medium
-            )
-        }
-        Spacer(Modifier.weight(1f))
-        PulseDot()
-    }
-}
-
-@Composable
-fun PulseDot() {
-    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
-    val scale by infiniteTransition.animateFloat(
-        initialValue = 1f,
-        targetValue = 1.4f,
-        animationSpec = infiniteRepeatable(
-            tween(900, easing = FastOutSlowInEasing),
-            RepeatMode.Reverse
-        ),
-        label = "dot pulse"
-    )
-    Box(contentAlignment = Alignment.Center) {
-        // Outer glow ring
-        Box(
-            modifier = Modifier
-                .size(34.dp)
-                .scale(scale)
-                .clip(CircleShape)
-                .background(AccGreen.copy(alpha = .15f))
-        )
-        // Inner dot
-        Box(
-            modifier = Modifier
-                .size(10.dp)
-                .clip(CircleShape)
-                .background(AccGreen)
-        )
     }
 }
 
 // ─── Ringer Mode ─────────────────────────────────────────────
 @Composable
-fun RingerModeRow(mode: Int, onToggle: () -> Unit) {
-    data class ModeOption(val label: String, val icon: ImageVector, val value: Int, val color: Color)
-    val options = listOf(
-        ModeOption("Sound",   Icons.Outlined.VolumeUp,   AudioManager.RINGER_MODE_NORMAL,  AccGreen),
-        ModeOption("Vibrate", Icons.Outlined.Vibration,  AudioManager.RINGER_MODE_VIBRATE, AccBlue),
-        ModeOption("Silent",  Icons.Outlined.VolumeOff,  AudioManager.RINGER_MODE_SILENT,  AccRed),
-    )
-
-    GlassCard {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                "RINGER MODE",
-                color = TextLow,
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 1.5.sp
-            )
-            Spacer(Modifier.height(12.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                options.forEach { opt ->
-                    val active = mode == opt.value
-                    val bgColor by animateColorAsState(
-                        if (active) opt.color.copy(alpha = .18f) else Color.Transparent,
-                        label = "ringer bg"
-                    )
-                    val borderColor by animateColorAsState(
-                        if (active) opt.color else Border,
-                        label = "ringer border"
-                    )
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(bgColor)
-                            .border(1.dp, borderColor, RoundedCornerShape(12.dp))
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null,
-                                onClick = {
-                                    if (mode != opt.value) onToggle()
-                                }
-                            )
-                            .padding(vertical = 10.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(
-                                opt.icon,
-                                contentDescription = opt.label,
-                                tint = if (active) opt.color else TextLow,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(Modifier.height(4.dp))
-                            Text(
-                                opt.label,
-                                color = if (active) opt.color else TextLow,
-                                fontSize = 10.sp,
-                                fontWeight = if (active) FontWeight.Bold else FontWeight.Normal
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-// ─── Volume Card ─────────────────────────────────────────────
-@Composable
-fun VolumeCard(
-    state: VolumeState,
-    onMedia: (Int) -> Unit, onRing: (Int) -> Unit, onAlarm: (Int) -> Unit,
-    onNotification: (Int) -> Unit, onCall: (Int) -> Unit,
-) {
-    GlassCard {
-        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp)) {
-            Text(
-                "VOLUME STREAMS",
-                color = TextLow,
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 1.5.sp
-            )
-            Spacer(Modifier.height(6.dp))
-
-            VolumeRow(Icons.Outlined.MusicNote,        "Media",        state.mediaVolume,        state.mediaMax,        onMedia)
-            VolumeRow(Icons.Outlined.RingVolume,       "Ring",         state.ringVolume,         state.ringMax,         onRing)
-            VolumeRow(Icons.Outlined.Alarm,            "Alarm",        state.alarmVolume,        state.alarmMax,        onAlarm)
-            VolumeRow(Icons.Outlined.NotificationsNone,"Notification", state.notificationVolume, state.notificationMax, onNotification)
-            VolumeRow(Icons.Outlined.Call,             "Call",         state.callVolume,         state.callMax,         onCall)
-        }
+fun RingerModeSection(currentMode: Int, onModeChange: (Int) -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        // RING
+        RingerModeButton(
+            label = "RING",
+            iconRes = R.drawable.ic_bell,
+            background = Magenta,
+            textColor = Black,
+            selected = currentMode == AudioManager.RINGER_MODE_NORMAL,
+            modifier = Modifier.weight(1f),
+            onClick = { onModeChange(AudioManager.RINGER_MODE_NORMAL) }
+        )
+        // VIBRATE
+        RingerModeButton(
+            label = "VIBRATE",
+            iconRes = R.drawable.ic_vibrate,
+            background = Cyan,
+            textColor = Black,
+            selected = currentMode == AudioManager.RINGER_MODE_VIBRATE,
+            modifier = Modifier.weight(1f),
+            onClick = { onModeChange(AudioManager.RINGER_MODE_VIBRATE) }
+        )
+        // SILENT
+        RingerModeButton(
+            label = "SILENT",
+            iconRes = R.drawable.ic_bell_off,
+            background = Purple,
+            textColor = White,
+            selected = currentMode == AudioManager.RINGER_MODE_SILENT,
+            modifier = Modifier.weight(1f),
+            onClick = { onModeChange(AudioManager.RINGER_MODE_SILENT) }
+        )
     }
 }
 
 @Composable
-fun VolumeRow(
-    icon: ImageVector,
+fun RingerModeButton(
     label: String,
-    value: Int,
-    max: Int,
+    iconRes: Int,
+    background: Color,
+    textColor: Color,
+    selected: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
+    // When selected: translate(8,8) + no shadow (permanently pressed)
+    // When not selected: full 8dp shadow, no translate
+    val offsetDp = if (selected) 8.dp else 0.dp
+    val shadowDp = if (selected) 0.dp else 8.dp
+
+    Box(
+        modifier = modifier
+            .offset(x = offsetDp, y = offsetDp)
+            .brutalistShadow(shadowDp)
+            .border(4.dp, Black, RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(8.dp))
+            .background(background)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = onClick
+            )
+            .padding(vertical = 16.dp, horizontal = 4.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Icon(
+                painter = painterResource(iconRes),
+                contentDescription = label,
+                tint = textColor,
+                modifier = Modifier.size(32.dp)
+            )
+            Text(
+                text = label,
+                color = textColor,
+                fontFamily = SpaceGroteskFamily,
+                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp,
+                letterSpacing = 0.sp,
+                textAlign = TextAlign.Center,
+            )
+        }
+    }
+}
+
+// ─── Volume Streams Card ─────────────────────────────────────
+@Composable
+fun VolumeStreamsCard(
+    state: VolumeState,
+    onMedia: (Int) -> Unit,
+    onRing: (Int) -> Unit,
+    onAlarm: (Int) -> Unit,
+    onCall: (Int) -> Unit,
+    onNotification: (Int) -> Unit,
+) {
+    BrutalistCard(background = White, shadowOffset = 8.dp) {
+        Column(
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            SoniqSliderRow(
+                iconRes = R.drawable.ic_music_note,
+                currentVolume = state.mediaVolume,
+                maxVolume = state.mediaMax,
+                trackColor = SliderGreen,
+                contentDescription = "Media volume",
+                onValueChange = onMedia
+            )
+            SoniqSliderRow(
+                iconRes = R.drawable.ic_ring_vol,
+                currentVolume = state.ringVolume,
+                maxVolume = state.ringMax,
+                trackColor = SliderBlue,
+                contentDescription = "Ring volume",
+                onValueChange = onRing
+            )
+            SoniqSliderRow(
+                iconRes = R.drawable.ic_alarm_clock,
+                currentVolume = state.alarmVolume,
+                maxVolume = state.alarmMax,
+                trackColor = SliderOrange,
+                contentDescription = "Alarm volume",
+                onValueChange = onAlarm
+            )
+            SoniqSliderRow(
+                iconRes = R.drawable.ic_phone,
+                currentVolume = state.callVolume,
+                maxVolume = state.callMax,
+                trackColor = SliderLightBlue,
+                contentDescription = "Call volume",
+                onValueChange = onCall
+            )
+            SoniqSliderRow(
+                iconRes = R.drawable.ic_notif,
+                currentVolume = state.notificationVolume,
+                maxVolume = state.notificationMax,
+                trackColor = SliderGreen,
+                contentDescription = "Notification volume",
+                onValueChange = onNotification
+            )
+        }
+    }
+}
+
+@Composable
+fun SoniqSliderRow(
+    iconRes: Int,
+    currentVolume: Int,
+    maxVolume: Int,
+    trackColor: Color,
+    contentDescription: String,
     onValueChange: (Int) -> Unit,
 ) {
-    val accent = StreamColors[label] ?: AccBlue
-    val isMuted = value == 0
-    val pct = if (max > 0) (value * 100f / max).toInt() else 0
-
-    val trackColor by animateColorAsState(
-        if (isMuted) TextLow.copy(alpha = .3f) else accent,
-        animationSpec = tween(300),
-        label = "$label track"
-    )
+    val pct = if (maxVolume > 0) (currentVolume * 100 / maxVolume) else 0
 
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+        // Icon box: #CCFF00 with 4px black border, 56×56
         Box(
             modifier = Modifier
-                .size(36.dp)
-                .clip(CircleShape)
-                .background(if (isMuted) BgStrip else accent.copy(alpha = .15f))
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null
-                ) {
-                    onValueChange(if (isMuted) max / 2 else 0)
-                },
+                .size(56.dp)
+                .border(4.dp, Black)
+                .background(Lime),
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                icon,
-                contentDescription = "$label mute toggle",
-                tint = if (isMuted) TextLow else accent,
-                modifier = Modifier.size(18.dp)
+                painter = painterResource(iconRes),
+                contentDescription = contentDescription,
+                tint = Black,
+                modifier = Modifier.size(28.dp)
             )
         }
-        Spacer(Modifier.width(12.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    label,
-                    color = if (isMuted) TextLow else TextMid,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Medium,
-                    modifier = Modifier.weight(1f)
-                )
-                Text(
-                    "$pct%",
-                    color = if (isMuted) TextLow else accent,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
-            Spacer(Modifier.height(4.dp))
+
+        // Slider + percentage
+        Row(
+            modifier = Modifier.weight(1f),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
             Slider(
-                value = value.toFloat(),
+                value = currentVolume.toFloat(),
                 onValueChange = { onValueChange(it.toInt()) },
-                valueRange = 0f..max.toFloat().coerceAtLeast(1f),
-                modifier = Modifier.fillMaxWidth().height(28.dp),
+                valueRange = 0f..maxVolume.toFloat().coerceAtLeast(1f),
+                modifier = Modifier.weight(1f),
                 colors = SliderDefaults.colors(
-                    thumbColor = trackColor,
+                    thumbColor = Black,
                     activeTrackColor = trackColor,
-                    inactiveTrackColor = Border,
+                    inactiveTrackColor = White,
                     activeTickColor = Color.Transparent,
                     inactiveTickColor = Color.Transparent,
                 )
             )
+            Text(
+                text = "$pct%",
+                color = Black,
+                fontFamily = SpaceGroteskFamily,
+                fontWeight = FontWeight.Black,
+                fontSize = 18.sp,
+                textAlign = TextAlign.End,
+                modifier = Modifier.width(52.dp)
+            )
         }
     }
 }
 
-// ─── Per-App Volume Section ──────────────────────────────────
+// ─── Link Buttons Row ────────────────────────────────────────
 @Composable
-fun AppMixerSection(
-    activeApps: List<com.volumeq.app.audio.ActiveAppAudio>,
-    onAppVolumeChange: (String, Int) -> Unit
+fun LinkButtonsRow(
+    onGitHub: () -> Unit,
+    onLinkedIn: () -> Unit,
+    onInstagram: () -> Unit,
 ) {
-    var expanded by remember { mutableStateOf(true) }
-    var showInfoDialog by remember { mutableStateOf(false) }
-
-    if (showInfoDialog) {
-        AlertDialog(
-            onDismissRequest = { showInfoDialog = false },
-            confirmButton = {
-                TextButton(onClick = { showInfoDialog = false }) {
-                    Text("OK", color = AccBlue)
-                }
-            },
-            title = {
-                Text("About Per-App Volume", color = TextHi, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            },
-            text = {
-                Text(
-                    "Standard Android does not support absolute per-app volume adjustments without root permissions. " +
-                    "This section lists active audio playing sessions on a best-effort basis, and adjusting sliders " +
-                    "scales their relative volume within the system's music stream.",
-                    color = TextMid,
-                    fontSize = 13.sp
-                )
-            },
-            containerColor = BgCard,
-            tonalElevation = 6.dp
-        )
-    }
-
-    GlassCard {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null
-                    ) { expanded = !expanded },
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    "APP VOLUMES",
-                    color = TextLow,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.5.sp,
-                    modifier = Modifier.weight(1f)
-                )
-
-                IconButton(
-                    onClick = { showInfoDialog = true },
-                    modifier = Modifier.size(24.dp)
-                ) {
-                    Icon(
-                        Icons.Outlined.Info,
-                        contentDescription = "Per-app info",
-                        tint = TextLow,
-                        modifier = Modifier.size(16.dp)
-                    )
-                }
-
-                Spacer(Modifier.width(8.dp))
-
-                Icon(
-                    imageVector = if (expanded) Icons.Outlined.KeyboardArrowUp else Icons.Outlined.KeyboardArrowDown,
-                    contentDescription = if (expanded) "Collapse" else "Expand",
-                    tint = TextMid,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-
-            AnimatedVisibility(visible = expanded) {
-                Column(modifier = Modifier.padding(top = 12.dp)) {
-                    if (activeApps.isEmpty()) {
-                        Text(
-                            "No active audio playing apps detected.",
-                            color = TextLow,
-                            fontSize = 12.sp,
-                            modifier = Modifier.padding(vertical = 8.dp)
-                        )
-                    } else {
-                        activeApps.forEachIndexed { index, app ->
-                            if (index > 0) {
-                                Divider(color = Color(0xFF1E2240), thickness = 0.5.dp, modifier = Modifier.padding(vertical = 8.dp))
-                            }
-                            AppVolumeRow(app = app, onVolumeChange = { onAppVolumeChange(app.packageName, it) })
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun AppVolumeRow(
-    app: com.volumeq.app.audio.ActiveAppAudio,
-    onVolumeChange: (Int) -> Unit
-) {
-    val context = LocalContext.current
-    val pm = remember(context) { context.packageManager }
-    val appIcon = remember(app.packageName) {
-        runCatching {
-            pm.getApplicationIcon(app.packageName)
-        }.getOrNull()
-    }
-
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        if (appIcon != null) {
-            Image(
-                bitmap = remember(appIcon) { drawableToBitmap(appIcon).asImageBitmap() },
-                contentDescription = "${app.appName} icon",
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(RoundedCornerShape(8.dp))
-            )
-        } else {
-            Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(BgStrip),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    Icons.Outlined.MusicNote,
-                    contentDescription = null,
-                    tint = TextLow,
-                    modifier = Modifier.size(18.dp)
-                )
-            }
-        }
-
-        Spacer(Modifier.width(12.dp))
-
-        Column(modifier = Modifier.weight(1f)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    app.appName,
-                    color = TextMid,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Medium,
-                    modifier = Modifier.weight(1f)
-                )
-                Text(
-                    "${app.volume}%",
-                    color = AccBlue,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
-            Spacer(Modifier.height(4.dp))
-            Slider(
-                value = app.volume.toFloat(),
-                onValueChange = { onVolumeChange(it.toInt()) },
-                valueRange = 0f..100f,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(28.dp),
-                colors = SliderDefaults.colors(
-                    thumbColor = AccBlue,
-                    activeTrackColor = AccBlue,
-                    inactiveTrackColor = Border,
-                    activeTickColor = Color.Transparent,
-                    inactiveTickColor = Color.Transparent
-                )
-            )
-        }
+        LinkButton("GITHUB",    Cyan,    Modifier.weight(1f), onGitHub)
+        LinkButton("LINKEDIN",  Magenta, Modifier.weight(1f), onLinkedIn)
+        LinkButton("INSTAGRAM", Color(0xFFFFFF00), Modifier.weight(1f), onInstagram)
     }
 }
 
-// ─── How-To Card ─────────────────────────────────────────────
 @Composable
-fun HowToCard() {
-    GlassCard {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    Icons.Outlined.TouchApp,
-                    contentDescription = null,
-                    tint = AccBlue,
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    "QUICK SETTINGS TILE",
-                    color = TextLow,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.5.sp
-                )
+fun LinkButton(
+    label: String,
+    hoverColor: Color,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
+    var pressed by remember { mutableStateOf(false) }
+    val offsetDp = if (pressed) 8.dp else 0.dp
+    val shadowDp = if (pressed) 0.dp else 8.dp
+
+    Box(
+        modifier = modifier
+            .offset(x = offsetDp, y = offsetDp)
+            .brutalistShadow(shadowDp)
+            .border(4.dp, Black, RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(8.dp))
+            .background(White)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) {
+                pressed = !pressed
+                onClick()
             }
-            Spacer(Modifier.height(12.dp))
-            listOf(
-                "Swipe down twice to open Quick Settings.",
-                "Tap the edit/pencil icon.",
-                "Drag the VolTile tile into your panel.",
-                "Tap the tile anytime to open this screen."
-            ).forEachIndexed { i, step ->
-                Row(
-                    modifier = Modifier.padding(vertical = 3.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(20.dp)
-                            .clip(CircleShape)
-                            .background(AccBlue.copy(alpha = .15f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            "${i + 1}",
-                            color = AccBlue,
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                    Spacer(Modifier.width(10.dp))
-                    Text(step, color = TextMid, fontSize = 13.sp)
-                }
-            }
-        }
+            .padding(vertical = 16.dp, horizontal = 4.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = label,
+            color = Black,
+            fontFamily = SpaceGroteskFamily,
+            fontWeight = FontWeight.Black,
+            fontSize = 13.sp,
+            textAlign = TextAlign.Center,
+            letterSpacing = 0.sp,
+        )
     }
 }
 
 // ─── Battery Button ──────────────────────────────────────────
 @Composable
-fun BatteryButton(onClick: () -> Unit) {
+fun BatteryOptButton(onClick: () -> Unit) {
+    var pressed by remember { mutableStateOf(false) }
+    val offsetDp = if (pressed) 8.dp else 0.dp
+    val shadowDp = if (pressed) 0.dp else 8.dp
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
-            .background(BgCard)
-            .border(1.dp, Border, RoundedCornerShape(14.dp))
-            .clickable(onClick = onClick)
-            .padding(vertical = 14.dp),
+            .offset(x = offsetDp, y = offsetDp)
+            .brutalistShadow(shadowDp)
+            .border(4.dp, Black, RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(8.dp))
+            .background(BatteryOrange)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) {
+                pressed = !pressed
+                onClick()
+            }
+            .padding(vertical = 16.dp, horizontal = 20.dp),
         contentAlignment = Alignment.Center
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Icon(
-                Icons.Outlined.BatteryChargingFull,
+                painter = painterResource(R.drawable.ic_volume_outline),
                 contentDescription = null,
-                tint = AccAmber,
-                modifier = Modifier.size(18.dp)
+                tint = Black,
+                modifier = Modifier.size(28.dp)
             )
-            Spacer(Modifier.width(10.dp))
             Text(
-                "Disable Battery Optimisation",
-                color = AccAmber,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.SemiBold
+                text = "DISABLE BATTERY OPTIMISATION",
+                color = Black,
+                fontFamily = SpaceGroteskFamily,
+                fontWeight = FontWeight.Black,
+                fontSize = 15.sp,
+                letterSpacing = 0.sp,
+                textAlign = TextAlign.Center,
             )
         }
     }
 }
 
-// ─── Shared Card Component ────────────────────────────────────
+// ─── Brutalist Card ──────────────────────────────────────────
 @Composable
-fun GlassCard(content: @Composable () -> Unit) {
+fun BrutalistCard(
+    background: Color = White,
+    shadowOffset: Dp = 8.dp,
+    content: @Composable () -> Unit
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
-            .background(BgCard)
-            .border(1.dp, Border, RoundedCornerShape(20.dp))
+            .brutalistShadow(shadowOffset)
+            .border(4.dp, Black, RoundedCornerShape(8.dp))
+            .clip(RoundedCornerShape(8.dp))
+            .background(background)
     ) {
         content()
     }
 }
 
-private fun drawableToBitmap(drawable: android.graphics.drawable.Drawable): android.graphics.Bitmap {
-    if (drawable is android.graphics.drawable.BitmapDrawable) {
-        return drawable.bitmap
-    }
-    val bitmap = android.graphics.Bitmap.createBitmap(
-        drawable.intrinsicWidth.coerceAtLeast(1),
-        drawable.intrinsicHeight.coerceAtLeast(1),
-        android.graphics.Bitmap.Config.ARGB_8888
-    )
-    val canvas = android.graphics.Canvas(bitmap)
-    drawable.setBounds(0, 0, canvas.width, canvas.height)
-    drawable.draw(canvas)
-    return bitmap
-}
-
+// ─── Shadow Modifier ─────────────────────────────────────────
+// Hard-edge neo-brutalist black shadow: draws a solid black rectangle
+// offset by (offset, offset) below/right of the component, exactly as the
+// CSS `box-shadow: 8px 8px 0px 0px rgba(0,0,0,1)` does in the HTML.
+fun Modifier.brutalistShadow(offset: Dp = 8.dp): Modifier =
+    this
+        .padding(bottom = offset, end = offset)
+        .drawBehind {
+            val offsetPx = offset.toPx()
+            drawRect(
+                color = ShadowBlack,
+                topLeft = androidx.compose.ui.geometry.Offset(offsetPx, offsetPx),
+                size = Size(size.width, size.height)
+            )
+        }

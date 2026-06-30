@@ -1,0 +1,233 @@
+<!DOCTYPE html><html lang="en" style="background-color: rgb(204, 255, 0) !important; min-height: 100vh; margin: 0px; padding: 0px;" class="stitch-anim-fade-in"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700;900&amp;display=swap" rel="stylesheet">
+<style>
+        body { background-color: #CCFF00 !important; margin: 0; padding: 0; min-height: 100vh; overflow-x: hidden; } 
+        .brutalist-border { border: 4px solid #000; }
+        .brutalist-shadow { box-shadow: 8px 8px 0px 0px rgba(0,0,0,1); }
+        .brutalist-shadow-sm { box-shadow: 4px 4px 0px 0px rgba(0,0,0,1); }
+        .brutalist-hover:hover { transform: translate(4px, 4px); box-shadow: 4px 4px 0px 0px rgba(0,0,0,1); }
+        .brutalist-active:active { transform: translate(8px, 8px); box-shadow: 0px 0px 0px 0px rgba(0,0,0,1); }
+
+        /* Selected mode state: reuses the exact pressed-in look of brutalist-active so the
+           active RING/VIBRATE/SILENT mode reads as permanently "pushed down" into the surface */
+        .mode-btn[aria-pressed="true"] {
+            transform: translate(8px, 8px);
+            box-shadow: 0px 0px 0px 0px rgba(0,0,0,1);
+        }
+        
+        /* Exact match for the reference image sliders */
+        input[type=range] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            background: transparent;
+            height: 48px; /* Touch target height meets Android's 48dp minimum; visible track/thumb size unchanged below */
+            cursor: pointer;
+            margin: 0;
+        }
+        input[type=range]:focus {
+            outline: none;
+        }
+        
+        /* The Thumb (Black rounded square with hard-edged 3D bevel, no soft gradients to stay brutalist) */
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 32px;
+            width: 32px;
+            border-radius: 8px; /* Slightly rounded corners */
+            background: #000;
+            cursor: pointer;
+            /* Hard-edged inset highlight (top-left) and shadow (bottom-right) for a 3D block look, matching the sharp brutalist-shadow language used elsewhere rather than a soft bevel */
+            box-shadow: inset 4px 4px 0px 0px rgba(255,255,255,0.75), inset -4px -4px 0px 0px rgba(0,0,0,0.85);
+            /* Center thumb against the new 10px track (18px bordered: 10px height + 4px+4px border) within the 48px touch-target box */
+            margin-top: 7px; 
+            position: relative;
+            z-index: 2;
+        }
+        input[type=range]::-moz-range-thumb {
+            height: 32px;
+            width: 32px;
+            border-radius: 8px;
+            background: #000;
+            cursor: pointer;
+            border: none;
+            box-shadow: inset 4px 4px 0px 0px rgba(255,255,255,0.75), inset -4px -4px 0px 0px rgba(0,0,0,0.85);
+        }
+        
+        /* The Track (Thick border, dynamic color fill over white background) */
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 10px;
+            cursor: pointer;
+            /* --slider-fill-px is computed directly in JS (thumb's true pixel center position),
+               avoiding fragile mixed-unit calc() math. This keeps the fill boundary exactly under
+               the thumb at every value, including 100%, instead of the fill running underneath
+               the thumb's full width and visually merging into one black block at the end. */
+            background: linear-gradient(to right, var(--slider-color) var(--slider-fill-px, 0px), #ffffff var(--slider-fill-px, 0px));
+            border: 4px solid #000;
+            border-radius: 0px; /* Sharp corners */
+        }
+        input[type=range]::-moz-range-track {
+            width: 100%;
+            height: 10px;
+            cursor: pointer;
+            background: linear-gradient(to right, var(--slider-color) var(--slider-fill-px, 0px), #ffffff var(--slider-fill-px, 0px));
+            border: 4px solid #000;
+            border-radius: 0px;
+        }
+        
+        .font-brutal { font-family: 'Space Grotesk', sans-serif; font-weight: 900; }
+    </style>
+</head>
+<body class="font-brutal text-black min-h-screen uppercase tracking-tight flex flex-col items-center justify-center p-6 m-0">
+<main class="w-full max-w-[450px] flex flex-col gap-4">
+<!-- Header -->
+<header class="text-center bg-white brutalist-border brutalist-shadow py-4 rounded-lg w-full">
+<h1 class="text-7xl font-black tracking-tighter m-0">SONIQ</h1>
+</header>
+<!-- Mode Selection -->
+<section class="grid grid-cols-3 gap-4 w-full">
+<button type="button" class="mode-btn bg-[#FF00FF] text-black brutalist-border brutalist-shadow brutalist-hover brutalist-active p-4 flex flex-col items-center justify-center gap-2 font-bold rounded-lg" data-mode="ring" aria-pressed="false">
+<div class="w-12 h-12 flex items-center justify-center overflow-hidden">
+<svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+</div>
+<span class="text-xl">RING</span>
+</button>
+<button type="button" class="mode-btn bg-[#00FFFF] text-black brutalist-border brutalist-shadow brutalist-hover brutalist-active p-4 flex flex-col items-center justify-center gap-2 font-bold rounded-lg" data-mode="vibrate" aria-pressed="false">
+<div class="w-12 h-12 flex items-center justify-center overflow-hidden">
+<svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M2 8L2 16"></path><path d="M6 5L6 19"></path><path d="M22 8L22 16"></path><path d="M18 5L18 19"></path><rect height="18" rx="1" width="4" x="10" y="3"></rect></svg>
+</div>
+<span class="text-xl">VIBRATE</span>
+</button>
+<button type="button" class="mode-btn bg-[#7000FF] text-white brutalist-border brutalist-shadow brutalist-hover brutalist-active p-4 flex flex-col items-center justify-center gap-2 font-bold rounded-lg" data-mode="silent" aria-pressed="false">
+<div class="w-12 h-12 flex items-center justify-center overflow-hidden">
+<svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M13.73 21a2 2 0 0 1-3.46 0"></path><path d="M18.63 13A17.89 17.89 0 0 1 18 8"></path><path d="M6.26 6.26A5.86 5.86 0 0 0 6 8c0 7-3 9-3 9h14"></path><path d="M18 8a6 6 0 0 0-9.33-5"></path><line x1="1" x2="23" y1="1" y2="23"></line></svg>
+</div>
+<span class="text-xl">SILENT</span>
+</button>
+</section>
+<!-- Volume Streams -->
+<section class="bg-[#Fdfdfd] brutalist-border brutalist-shadow p-6 space-y-4 rounded-lg w-full">
+<!-- Media -->
+<div class="flex items-center gap-4">
+<div class="bg-[#CCFF00] border-[4px] border-black flex-shrink-0 w-14 h-14 flex items-center justify-center"><svg class="w-8 h-8 text-black" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg></div>
+<div class="flex-grow flex items-center gap-4">
+<input class="w-full volume-slider" aria-label="Media volume" data-color="#22c55e" max="100" min="0" style="--slider-percent: 80%; --slider-color: #22c55e;" type="range" value="80">
+<span class="text-xl font-black text-right w-16 flex-shrink-0">80%</span>
+</div>
+</div>
+<!-- Ring -->
+<div class="flex items-center gap-4">
+<div class="bg-[#CCFF00] border-[4px] border-black flex-shrink-0 w-14 h-14 flex items-center justify-center"><svg class="w-8 h-8 text-black" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.27 4a2 2 0 0 1-3.46 0"></path></svg></div>
+<div class="flex-grow flex items-center gap-4">
+<input class="w-full volume-slider" aria-label="Ring volume" data-color="#1d4ed8" max="100" min="0" style="--slider-percent: 60%; --slider-color: #1d4ed8;" type="range" value="60">
+<span class="text-xl font-black text-right w-16 flex-shrink-0">60%</span>
+</div>
+</div>
+<!-- Alarm -->
+<div class="flex items-center gap-4">
+<div class="bg-[#CCFF00] border-[4px] border-black flex-shrink-0 w-14 h-14 flex items-center justify-center"><svg class="w-8 h-8 text-black" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div>
+<div class="flex-grow flex items-center gap-4">
+<input class="w-full volume-slider" aria-label="Alarm volume" data-color="#ea580c" max="100" min="0" style="--slider-percent: 92%; --slider-color: #ea580c;" type="range" value="92">
+<span class="text-xl font-black text-right w-16 flex-shrink-0">92%</span>
+</div>
+</div>
+<!-- Call -->
+<div class="flex items-center gap-4">
+<div class="bg-[#CCFF00] border-[4px] border-black flex-shrink-0 w-14 h-14 flex items-center justify-center"><svg class="w-8 h-8 text-black" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg></div>
+<div class="flex-grow flex items-center gap-4">
+<input class="w-full volume-slider" aria-label="Call volume" data-color="#93c5fd" max="100" min="0" style="--slider-percent: 50%; --slider-color: #93c5fd;" type="range" value="50">
+<span class="text-xl font-black text-right w-16 flex-shrink-0">50%</span>
+</div>
+</div>
+<!-- Notification -->
+<div class="flex items-center gap-4">
+<div class="bg-[#CCFF00] border-[4px] border-black flex-shrink-0 w-14 h-14 flex items-center justify-center"><svg class="w-8 h-8 text-black" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M10 5a2 2 0 0 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6"></path><path d="M9 17v1a3 3 0 0 0 6 0v-1"></path><path d="M21 6.727a11.05 11.05 0 0 0 -2.794 -3.727"></path><path d="M3 6.727a11.05 11.05 0 0 1 2.792 -3.727"></path></svg></div>
+<div class="flex-grow flex items-center gap-4">
+<input class="w-full volume-slider" aria-label="Notification volume" data-color="#22c55e" max="100" min="0" style="--slider-percent: 70%; --slider-color: #22c55e;" type="range" value="70">
+<span class="text-xl font-black text-right w-16 flex-shrink-0">70%</span>
+</div>
+</div>
+</section>
+<!-- Links -->
+<div class="grid grid-cols-3 gap-4 w-full">
+<a class="bg-white text-black brutalist-border brutalist-shadow brutalist-hover brutalist-active p-4 flex items-center justify-center text-sm md:text-lg text-center font-black hover:bg-[#00FFFF] rounded-lg" href="#">GITHUB</a>
+<a class="bg-white text-black brutalist-border brutalist-shadow brutalist-hover brutalist-active p-4 flex items-center justify-center text-sm md:text-lg text-center font-black hover:bg-[#FF00FF] rounded-lg" href="#">LINKEDIN</a>
+<a class="bg-white text-black brutalist-border brutalist-shadow brutalist-hover brutalist-active p-4 flex items-center justify-center text-sm md:text-lg text-center font-black hover:bg-[#FFFF00] rounded-lg" href="#">INSTAGRAM</a>
+</div>
+<!-- Disable Battery Opt -->
+<button type="button" class="w-full bg-[#FF5500] text-black brutalist-border brutalist-shadow brutalist-hover brutalist-active flex items-center justify-center gap-4 font-black uppercase text-center rounded-lg p-4 md:text-lg"><div class="flex items-center justify-center gap-4 w-full">
+  <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="3" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <rect height="16" rx="2" ry="2" width="12" x="6" y="4"></rect>
+    <line x1="10" x2="14" y1="2" y2="2"></line>
+  </svg>
+  <span class="text-xl md:text-2xl">DISABLE BATTERY OPTIMISATION</span>
+</div></button>
+</main>
+<script>
+    // Compute the fill boundary in real pixels (matches the thumb's true center position
+    // at this value) instead of a CSS calc() mixing px/%/var() units, which Chromium
+    // doesn't reliably resolve for nested percentage division. thumbWidth must match the
+    // ::-webkit-slider-thumb / ::-moz-range-thumb width set in CSS above (32px).
+    const SLIDER_THUMB_WIDTH = 32;
+
+    const updateSlider = (element) => {
+        // Update the text to match the thumb placement
+        const percentSpan = element.parentElement.querySelector('span');
+        if(percentSpan) {
+            percentSpan.textContent = element.value + '%';
+        }
+        
+        // Inject variables directly into the inline style to update the track fill
+        const value = (element.value - element.min) / (element.max - element.min) * 100;
+        const color = element.getAttribute('data-color');
+        element.style.setProperty('--slider-percent', `${value}%`);
+        element.style.setProperty('--slider-color', color);
+
+        const trackWidth = element.getBoundingClientRect().width;
+        const fillPx = (trackWidth - SLIDER_THUMB_WIDTH) * (value / 100) + (SLIDER_THUMB_WIDTH / 2);
+        element.style.setProperty('--slider-fill-px', `${fillPx}px`);
+    };
+
+    document.querySelectorAll('.volume-slider').forEach(slider => {
+        // Run once on load to set initial state. Wrapped in requestAnimationFrame so the
+        // slider has been laid out and getBoundingClientRect() returns its real width,
+        // rather than 0 on a script that runs before first paint.
+        requestAnimationFrame(() => updateSlider(slider));
+
+        // Update continuously while sliding
+        slider.addEventListener('input', function() {
+            updateSlider(this);
+        });
+    });
+
+    // Recompute fill on resize/orientation-change so --slider-fill-px (a pixel value tied
+    // to the track's measured width) doesn't go stale if the layout width changes.
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+            document.querySelectorAll('.volume-slider').forEach(updateSlider);
+        }, 100);
+    });
+
+    // Mode selection (RING / VIBRATE / SILENT): clicking a mode button marks it
+    // as the selected mode via aria-pressed, which drives the .mode-btn[aria-pressed="true"]
+    // CSS rule so the selected button stays visually "pressed in".
+    const modeButtons = document.querySelectorAll('.mode-btn');
+    modeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            modeButtons.forEach(btn => btn.setAttribute('aria-pressed', 'false'));
+            this.setAttribute('aria-pressed', 'true');
+        });
+    });
+</script>
+
+
+
+
+</body></html>

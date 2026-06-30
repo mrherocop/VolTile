@@ -34,7 +34,7 @@ jobs:
     - name: Upload Debug APK
       uses: actions/upload-artifact@v4
       with:
-        name: voltile-debug-apk
+        name: soniq-debug-apk
         path: app/build/outputs/apk/debug/app-debug.apk
 
     - name: Create GitHub Release
@@ -42,23 +42,28 @@ jobs:
       uses: softprops/action-gh-release@v2
       with:
         files: app/build/outputs/apk/debug/app-debug.apk
-        tag_name: v2.1
-        name: VolTile v2.1 Release
+        tag_name: v3.0
+        name: SONIQ v3.0
         body: |
-          ### VolTile – Premium Volume Control Center
+          ## SONIQ v3.0 — Volume Control, Reimagined
 
-          #### Key Features:
-          1. 📱 **Always-On Interactive Notification Panel** — Manage Media, Ring, Alarm, Notifications, and Voice Call volumes directly from your notification drawer/control center with dedicated +/- buttons and real-time visual progress bars.
-          2. 🔊 **Ringer Mode Toggles** — Cycle through Sound, Vibrate, and Silent profiles instantly from the notification header or the main app.
-          3. ✨ **Premium Dark UI Redesign** — Fully customized Glassmorphic navy dashboard layout featuring color-coded stream indicators, smooth animated sliders, and dynamic pulsing status indicators.
-          4. ⚡ **Quick Settings Tile integration** — Tap the custom QS tile anytime to bring up the main control app.
-          5. 🔋 **24/7 Service Persistence** — Sticky service with automated boot start receiver and system battery optimization ignoring support to stay alive forever.
+          A complete UI overhaul with a **Neo-Brutalist** design language. Electric lime-yellow, bold black borders, and hard-edge shadows — a volume control app that actually looks good.
+
+          #### ✨ What's New in v3.0:
+          1. 🟡 **Brand new SONIQ identity** — Neo-brutalist lime + black design system (Space Grotesk font, offline bundled)
+          2. 🎚️ **5 volume stream sliders** — Media, Ring, Alarm, Call, Notification with color-coded tracks
+          3. 🔊 **Ringer mode buttons** — Ring (Magenta), Vibrate (Cyan), Silent (Purple) — selected mode stays visually pressed-in
+          4. 📳 **Revamped notification panel** — Lime `#D4FF00` background, white header, SOUND/VIBRATE/SILENT buttons, 4 live sliders
+          5. ⚡ **Quick Settings Tile** — Tap to open SONIQ instantly from your notification shade
+          6. 🔋 **24/7 background service** — Auto-starts on boot, battery optimisation exempt prompt
+          7. 📴 **100% offline** — All fonts (Space Grotesk, JetBrains Mono) and icons bundled in the APK
 
           #### How to Install:
-          1. Download the **`app-debug.apk`** from the assets section below.
-          2. Install it on your Android device (Android 10+).
-          3. Open the app and tap "Disable Battery Optimisation" to ensure continuous background operations.
-          4. Add the **VolTile** tile to your Quick Settings panel!
+          1. Download **`app-debug.apk`** from Assets below.
+          2. Transfer to your Android device (Android 10+) and install.
+          3. Enable **"Install from Unknown Sources"** if prompted.
+          4. Open SONIQ → tap **"Disable Battery Optimisation"** for 24/7 reliability.
+          5. Swipe down twice → edit Quick Settings → add the **Volume** tile!
         draft: false
         prerelease: false
       env:

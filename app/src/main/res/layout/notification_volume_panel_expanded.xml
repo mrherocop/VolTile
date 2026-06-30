@@ -1,408 +1,364 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- SONIQ Expanded Notification Panel — matches soniq_notification_bar.html exactly -->
+<!-- Background: #D4FF00, white header, 3 ringer mode buttons, 4 volume sliders in white card -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="256dp"
-    android:background="#0E1120"
+    android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="8dp">
+    android:background="#D4FF00"
+    android:padding="0dp">
 
-    <!-- Top Header -->
-    <RelativeLayout
+    <!-- ══ HEADER ══════════════════════════════════════════════════ -->
+    <!-- White bar: volume icon + "SONIQ" bold + "OPEN APP" link -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="32dp"
-        android:gravity="center_vertical"
-        android:layout_marginBottom="4dp">
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="#FFFFFF"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:gravity="center_vertical">
 
-        <ImageView
-            android:id="@+id/expanded_logo"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:src="@drawable/ic_volume_outline"
-            android:tint="#5B7BFF"
-            android:layout_alignParentStart="true"
-            android:layout_centerVertical="true"
-            android:layout_marginStart="4dp" />
-
-        <TextView
-            android:layout_width="wrap_content"
+        <!-- Left: icon + SONIQ label -->
+        <LinearLayout
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="VolTile Volume Panel"
-            android:textColor="#EEEEFF"
-            android:textSize="12sp"
-            android:textStyle="bold"
-            android:layout_toEndOf="@id/expanded_logo"
-            android:layout_marginStart="8dp"
-            android:layout_centerVertical="true" />
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
-        <!-- Quick Launch App button -->
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:src="@drawable/ic_volume_outline"
+                android:tint="#000000"
+                android:contentDescription="Volume icon"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="SONIQ"
+                android:textColor="#000000"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:letterSpacing="-0.03"
+                android:fontFamily="sans-serif-black"/>
+        </LinearLayout>
+
+        <!-- Right: "OPEN APP" text button -->
         <TextView
             android:id="@+id/btn_open_app"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="OPEN APP"
-            android:textColor="#5B7BFF"
-            android:textSize="10sp"
+            android:textColor="#000000"
+            android:textSize="11sp"
             android:textStyle="bold"
-            android:padding="6dp"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
-            android:background="?android:attr/selectableItemBackground" />
-    </RelativeLayout>
+            android:letterSpacing="0.08"
+            android:fontFamily="monospace"
+            android:clickable="true"
+            android:focusable="true"/>
+    </LinearLayout>
 
-    <!-- Ringer Modes Row -->
+    <!-- Bottom border of header: 4dp black line -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="4dp"
+        android:background="#000000"/>
+
+    <!-- ══ RINGER MODE BUTTONS ═══════════════════════════════════ -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="36dp"
+        android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_marginBottom="4dp"
+        android:background="#D4FF00"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
         android:weightSum="3">
 
-        <TextView
-            android:id="@+id/btn_ringer_sound"
+        <!-- SOUND button (active = green card) -->
+        <LinearLayout
+            android:id="@+id/btn_mode_sound"
             android:layout_width="0dp"
-            android:layout_height="30dp"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:layout_margin="2dp"
+            android:orientation="vertical"
             android:gravity="center"
-            android:text="🔊 Sound"
-            android:textColor="#8890BB"
-            android:textSize="11sp"
-            android:background="#141830" />
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:background="#22C55E"
+            android:layout_marginEnd="4dp"
+            android:clickable="true"
+            android:focusable="true">
 
-        <TextView
-            android:id="@+id/btn_ringer_vibrate"
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_volume_outline"
+                android:tint="#000000"
+                android:contentDescription="Sound mode"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="SOUND"
+                android:textColor="#000000"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:fontFamily="monospace"/>
+        </LinearLayout>
+
+        <!-- VIBRATE button (inactive = white) -->
+        <LinearLayout
+            android:id="@+id/btn_mode_vibrate"
             android:layout_width="0dp"
-            android:layout_height="30dp"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:layout_margin="2dp"
+            android:orientation="vertical"
             android:gravity="center"
-            android:text="📳 Vibrate"
-            android:textColor="#8890BB"
-            android:textSize="11sp"
-            android:background="#141830" />
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:background="#FFFFFF"
+            android:layout_marginEnd="4dp"
+            android:clickable="true"
+            android:focusable="true">
 
-        <TextView
-            android:id="@+id/btn_ringer_silent"
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_vibrate"
+                android:tint="#000000"
+                android:contentDescription="Vibrate mode"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="VIBRATE"
+                android:textColor="#000000"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:fontFamily="monospace"/>
+        </LinearLayout>
+
+        <!-- SILENT button (inactive = white) -->
+        <LinearLayout
+            android:id="@+id/btn_mode_silent"
             android:layout_width="0dp"
-            android:layout_height="30dp"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:layout_margin="2dp"
+            android:orientation="vertical"
             android:gravity="center"
-            android:text="🔇 Silent"
-            android:textColor="#8890BB"
-            android:textSize="11sp"
-            android:background="#141830" />
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:background="#FFFFFF"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_bell_off"
+                android:tint="#000000"
+                android:contentDescription="Silent mode"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="SILENT"
+                android:textColor="#000000"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:fontFamily="monospace"/>
+        </LinearLayout>
     </LinearLayout>
 
-    <!-- Media Stream Row -->
+    <!-- Bottom border of ringer section -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="4dp"
+        android:background="#000000"/>
+
+    <!-- ══ VOLUME SLIDERS (White panel) ═══════════════════════════ -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="32dp"
-        android:orientation="horizontal"
-        android:gravity="center_vertical">
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="#FFFFFF"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp">
 
-        <ImageView
-            android:layout_width="16dp"
-            android:layout_height="16dp"
-            android:src="@drawable/ic_music"
-            android:tint="#5B7BFF"
-            android:layout_marginStart="4dp" />
-
-        <TextView
-            android:layout_width="44dp"
+        <!-- Media row -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Media"
-            android:textColor="#8890BB"
-            android:textSize="11sp"
-            android:layout_marginStart="6dp" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="12dp">
 
-        <ImageButton
-            android:id="@+id/btn_media_down"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_minus"
-            android:tint="#8890BB"
-            android:padding="6dp" />
+            <ImageView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/ic_music_note"
+                android:tint="#000000"
+                android:background="#D4FF00"
+                android:padding="4dp"
+                android:contentDescription="Media volume"/>
 
-        <ProgressBar
-            android:id="@+id/progress_media"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="0dp"
+            <SeekBar
+                android:id="@+id/seek_media"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="6dp"
+                android:max="15"
+                android:progress="12"
+                android:progressTint="#22C55E"
+                android:thumbTint="#000000"/>
+
+            <TextView
+                android:id="@+id/tv_media_pct"
+                android:layout_width="30dp"
+                android:layout_height="wrap_content"
+                android:text="80%"
+                android:textColor="#000000"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:fontFamily="monospace"
+                android:gravity="end"/>
+        </LinearLayout>
+
+        <!-- Ring row -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:max="100"
-            android:progress="50"
-            android:progressTint="#5B7BFF"
-            android:progressBackgroundTint="#1E2240" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="12dp">
 
-        <ImageButton
-            android:id="@+id/btn_media_up"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_plus"
-            android:tint="#8890BB"
-            android:padding="6dp" />
+            <ImageView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/ic_ring_vol"
+                android:tint="#000000"
+                android:background="#D4FF00"
+                android:padding="4dp"
+                android:contentDescription="Ring volume"/>
 
-        <TextView
-            android:id="@+id/txt_media_val"
-            android:layout_width="32dp"
+            <SeekBar
+                android:id="@+id/seek_ring"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="6dp"
+                android:max="7"
+                android:progress="4"
+                android:progressTint="#005AC2"
+                android:thumbTint="#000000"/>
+
+            <TextView
+                android:id="@+id/tv_ring_pct"
+                android:layout_width="30dp"
+                android:layout_height="wrap_content"
+                android:text="60%"
+                android:textColor="#000000"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:fontFamily="monospace"
+                android:gravity="end"/>
+        </LinearLayout>
+
+        <!-- Alarm row -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="50%"
-            android:textColor="#5B7BFF"
-            android:textSize="11sp"
-            android:gravity="end"
-            android:layout_marginEnd="4dp" />
-    </LinearLayout>
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="12dp">
 
-    <!-- Ring Stream Row -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="32dp"
-        android:orientation="horizontal"
-        android:gravity="center_vertical">
+            <ImageView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/ic_alarm_clock"
+                android:tint="#000000"
+                android:background="#D4FF00"
+                android:padding="4dp"
+                android:contentDescription="Alarm volume"/>
 
-        <ImageView
-            android:layout_width="16dp"
-            android:layout_height="16dp"
-            android:src="@drawable/ic_ring"
-            android:tint="#BB6BFF"
-            android:layout_marginStart="4dp" />
+            <SeekBar
+                android:id="@+id/seek_alarm"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="6dp"
+                android:max="7"
+                android:progress="6"
+                android:progressTint="#FD761A"
+                android:thumbTint="#000000"/>
 
-        <TextView
-            android:layout_width="44dp"
+            <TextView
+                android:id="@+id/tv_alarm_pct"
+                android:layout_width="30dp"
+                android:layout_height="wrap_content"
+                android:text="90%"
+                android:textColor="#000000"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:fontFamily="monospace"
+                android:gravity="end"/>
+        </LinearLayout>
+
+        <!-- Call row -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Ring"
-            android:textColor="#8890BB"
-            android:textSize="11sp"
-            android:layout_marginStart="6dp" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
-        <ImageButton
-            android:id="@+id/btn_ring_down"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_minus"
-            android:tint="#8890BB"
-            android:padding="6dp" />
+            <ImageView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/ic_phone"
+                android:tint="#000000"
+                android:background="#D4FF00"
+                android:padding="4dp"
+                android:contentDescription="Call volume"/>
 
-        <ProgressBar
-            android:id="@+id/progress_ring"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:max="100"
-            android:progress="50"
-            android:progressTint="#BB6BFF"
-            android:progressBackgroundTint="#1E2240" />
+            <SeekBar
+                android:id="@+id/seek_call"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="6dp"
+                android:max="5"
+                android:progress="2"
+                android:progressTint="#82ABFF"
+                android:thumbTint="#000000"/>
 
-        <ImageButton
-            android:id="@+id/btn_ring_up"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_plus"
-            android:tint="#8890BB"
-            android:padding="6dp" />
-
-        <TextView
-            android:id="@+id/txt_ring_val"
-            android:layout_width="32dp"
-            android:layout_height="wrap_content"
-            android:text="50%"
-            android:textColor="#BB6BFF"
-            android:textSize="11sp"
-            android:gravity="end"
-            android:layout_marginEnd="4dp" />
-    </LinearLayout>
-
-    <!-- Alarm Stream Row -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="32dp"
-        android:orientation="horizontal"
-        android:gravity="center_vertical">
-
-        <ImageView
-            android:layout_width="16dp"
-            android:layout_height="16dp"
-            android:src="@drawable/ic_alarm"
-            android:tint="#FF8C42"
-            android:layout_marginStart="4dp" />
-
-        <TextView
-            android:layout_width="44dp"
-            android:layout_height="wrap_content"
-            android:text="Alarm"
-            android:textColor="#8890BB"
-            android:textSize="11sp"
-            android:layout_marginStart="6dp" />
-
-        <ImageButton
-            android:id="@+id/btn_alarm_down"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_minus"
-            android:tint="#8890BB"
-            android:padding="6dp" />
-
-        <ProgressBar
-            android:id="@+id/progress_alarm"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:max="100"
-            android:progress="50"
-            android:progressTint="#FF8C42"
-            android:progressBackgroundTint="#1E2240" />
-
-        <ImageButton
-            android:id="@+id/btn_alarm_up"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_plus"
-            android:tint="#8890BB"
-            android:padding="6dp" />
-
-        <TextView
-            android:id="@+id/txt_alarm_val"
-            android:layout_width="32dp"
-            android:layout_height="wrap_content"
-            android:text="50%"
-            android:textColor="#FF8C42"
-            android:textSize="11sp"
-            android:gravity="end"
-            android:layout_marginEnd="4dp" />
-    </LinearLayout>
-
-    <!-- Notification Stream Row -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="32dp"
-        android:orientation="horizontal"
-        android:gravity="center_vertical">
-
-        <ImageView
-            android:layout_width="16dp"
-            android:layout_height="16dp"
-            android:src="@drawable/ic_notification"
-            android:tint="#FFD166"
-            android:layout_marginStart="4dp" />
-
-        <TextView
-            android:layout_width="44dp"
-            android:layout_height="wrap_content"
-            android:text="Notif."
-            android:textColor="#8890BB"
-            android:textSize="11sp"
-            android:layout_marginStart="6dp" />
-
-        <ImageButton
-            android:id="@+id/btn_notification_down"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_minus"
-            android:tint="#8890BB"
-            android:padding="6dp" />
-
-        <ProgressBar
-            android:id="@+id/progress_notification"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:max="100"
-            android:progress="50"
-            android:progressTint="#FFD166"
-            android:progressBackgroundTint="#1E2240" />
-
-        <ImageButton
-            android:id="@+id/btn_notification_up"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_plus"
-            android:tint="#8890BB"
-            android:padding="6dp" />
-
-        <TextView
-            android:id="@+id/txt_notification_val"
-            android:layout_width="32dp"
-            android:layout_height="wrap_content"
-            android:text="50%"
-            android:textColor="#FFD166"
-            android:textSize="11sp"
-            android:gravity="end"
-            android:layout_marginEnd="4dp" />
-    </LinearLayout>
-
-    <!-- Call Stream Row -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="32dp"
-        android:orientation="horizontal"
-        android:gravity="center_vertical">
-
-        <ImageView
-            android:layout_width="16dp"
-            android:layout_height="16dp"
-            android:src="@drawable/ic_call"
-            android:tint="#3DD68C"
-            android:layout_marginStart="4dp" />
-
-        <TextView
-            android:layout_width="44dp"
-            android:layout_height="wrap_content"
-            android:text="Call"
-            android:textColor="#8890BB"
-            android:textSize="11sp"
-            android:layout_marginStart="6dp" />
-
-        <ImageButton
-            android:id="@+id/btn_call_down"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_minus"
-            android:tint="#8890BB"
-            android:padding="6dp" />
-
-        <ProgressBar
-            android:id="@+id/progress_call"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:max="100"
-            android:progress="50"
-            android:progressTint="#3DD68C"
-            android:progressBackgroundTint="#1E2240" />
-
-        <ImageButton
-            android:id="@+id/btn_call_up"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_plus"
-            android:tint="#8890BB"
-            android:padding="6dp" />
-
-        <TextView
-            android:id="@+id/txt_call_val"
-            android:layout_width="32dp"
-            android:layout_height="wrap_content"
-            android:text="50%"
-            android:textColor="#3DD68C"
-            android:textSize="11sp"
-            android:gravity="end"
-            android:layout_marginEnd="4dp" />
+            <TextView
+                android:id="@+id/tv_call_pct"
+                android:layout_width="30dp"
+                android:layout_height="wrap_content"
+                android:text="50%"
+                android:textColor="#000000"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:fontFamily="monospace"
+                android:gravity="end"/>
+        </LinearLayout>
     </LinearLayout>
 
 </LinearLayout>

@@ -45,7 +45,11 @@ class AudioRepository(private val context: Context) {
     }
 
     fun setRingerMode(mode: Int) {
-        audioManager.ringerMode = mode
+        try {
+            audioManager.ringerMode = mode
+        } catch (e: SecurityException) {
+            e.printStackTrace()
+        }
         updateState()
     }
 

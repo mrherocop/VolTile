@@ -69,7 +69,7 @@ class VolumeService : Service() {
             handleNotificationAction(intent)
         }
 
-        updateNotification()
+        updateNotification(isInit = true)
         return START_STICKY
     }
 
@@ -150,7 +150,7 @@ class VolumeService : Service() {
         }
     }
 
-    private fun updateNotification() {
+    private fun updateNotification(isInit: Boolean = false) {
         val collapsedViews = RemoteViews(packageName, R.layout.notification_volume_panel_collapsed)
         val expandedViews = RemoteViews(packageName, R.layout.notification_volume_panel_expanded)
 
@@ -250,17 +250,21 @@ class VolumeService : Service() {
             .setSmallIcon(R.drawable.ic_volume_outline)
             .setContentTitle("SONIQ Service Active")
             .setContentText("Volume control is running in the background.")
-            // .setCustomContentView(collapsedViews)
-            // .setCustomBigContentView(expandedViews)
+            .setCustomContentView(collapsedViews)
+            .setCustomBigContentView(expandedViews)
             .setOngoing(true)
             .setSilent(true)
             .setPriority(NotificationCompat.PRIORITY_MIN)
             .build()
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            startForeground(NOTIFICATION_ID, notification, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
+        if (isInit) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                startForeground(NOTIFICATION_ID, notification, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
+            } else {
+                startForeground(NOTIFICATION_ID, notification)
+            }
         } else {
-            startForeground(NOTIFICATION_ID, notification)
+            nm.notify(NOTIFICATION_ID, notification)
         }
     }
 

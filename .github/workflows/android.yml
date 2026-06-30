@@ -42,10 +42,10 @@ jobs:
       uses: softprops/action-gh-release@v2
       with:
         files: app/build/outputs/apk/debug/app-debug.apk
-        tag_name: v4.9-debug-8
-        name: SONIQ v4.9-debug-8
+        tag_name: v4.9-debug-9
+        name: SONIQ v4.9-debug-9
         body: |
-          ## SONIQ v4.9-debug-8 — Isolated RemoteViews Test
+          ## SONIQ v4.9-debug-9 — SecurityException & RemoteViews Fixed
 
           A complete UI overhaul with a **Neo-Brutalist** design language. Electric lime-yellow, bold black borders, and hard-edge shadows — a volume control app that actually looks good.
 

@@ -116,6 +116,13 @@ class VolumeQApp : ComponentActivity() {
             notifPermLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
         }
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val nm = getSystemService(android.app.NotificationManager::class.java)
+            if (nm != null && !nm.isNotificationPolicyAccessGranted) {
+                startActivity(Intent(android.provider.Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS))
+            }
+        }
+
         setContent {
             VolumeQTheme {
                 val vm: VolumeViewModel = viewModel()

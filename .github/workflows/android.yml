@@ -42,10 +42,10 @@ jobs:
       uses: softprops/action-gh-release@v2
       with:
         files: app/build/outputs/apk/debug/app-debug.apk
-        tag_name: v3.0
-        name: SONIQ v3.0
+        tag_name: v3.1
+        name: SONIQ v3.1
         body: |
-          ## SONIQ v3.0 — Volume Control, Reimagined
+          ## SONIQ v3.1 — Android 14 Hotfix
 
           A complete UI overhaul with a **Neo-Brutalist** design language. Electric lime-yellow, bold black borders, and hard-edge shadows — a volume control app that actually looks good.
 

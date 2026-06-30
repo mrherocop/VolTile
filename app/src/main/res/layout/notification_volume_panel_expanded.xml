@@ -46,7 +46,7 @@
             android:padding="6dp"
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
-            android:background="?android:attr/selectableItemBackground" />
+            android:background="@android:color/transparent" />
     </RelativeLayout>
 
     <!-- Ringer Modes Row -->
@@ -121,14 +121,14 @@
             android:id="@+id/btn_media_down"
             android:layout_width="28dp"
             android:layout_height="28dp"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:background="@android:color/transparent"
             android:src="@drawable/ic_minus"
             android:tint="#8890BB"
             android:padding="6dp" />
 
         <ProgressBar
             android:id="@+id/progress_media"
-            style="?android:attr/progressBarStyleHorizontal"
+            style="@android:style/Widget.ProgressBar.Horizontal"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -141,7 +141,7 @@
             android:id="@+id/btn_media_up"
             android:layout_width="28dp"
             android:layout_height="28dp"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:background="@android:color/transparent"
             android:src="@drawable/ic_plus"
             android:tint="#8890BB"
             android:padding="6dp" />
@@ -183,14 +183,14 @@
             android:id="@+id/btn_ring_down"
             android:layout_width="28dp"
             android:layout_height="28dp"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:background="@android:color/transparent"
             android:src="@drawable/ic_minus"
             android:tint="#8890BB"
             android:padding="6dp" />
 
         <ProgressBar
             android:id="@+id/progress_ring"
-            style="?android:attr/progressBarStyleHorizontal"
+            style="@android:style/Widget.ProgressBar.Horizontal"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -203,7 +203,7 @@
             android:id="@+id/btn_ring_up"
             android:layout_width="28dp"
             android:layout_height="28dp"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:background="@android:color/transparent"
             android:src="@drawable/ic_plus"
             android:tint="#8890BB"
             android:padding="6dp" />
@@ -245,14 +245,14 @@
             android:id="@+id/btn_alarm_down"
             android:layout_width="28dp"
             android:layout_height="28dp"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:background="@android:color/transparent"
             android:src="@drawable/ic_minus"
             android:tint="#8890BB"
             android:padding="6dp" />
 
         <ProgressBar
             android:id="@+id/progress_alarm"
-            style="?android:attr/progressBarStyleHorizontal"
+            style="@android:style/Widget.ProgressBar.Horizontal"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -265,7 +265,7 @@
             android:id="@+id/btn_alarm_up"
             android:layout_width="28dp"
             android:layout_height="28dp"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:background="@android:color/transparent"
             android:src="@drawable/ic_plus"
             android:tint="#8890BB"
             android:padding="6dp" />
@@ -307,14 +307,14 @@
             android:id="@+id/btn_notification_down"
             android:layout_width="28dp"
             android:layout_height="28dp"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:background="@android:color/transparent"
             android:src="@drawable/ic_minus"
             android:tint="#8890BB"
             android:padding="6dp" />
 
         <ProgressBar
             android:id="@+id/progress_notification"
-            style="?android:attr/progressBarStyleHorizontal"
+            style="@android:style/Widget.ProgressBar.Horizontal"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -327,7 +327,7 @@
             android:id="@+id/btn_notification_up"
             android:layout_width="28dp"
             android:layout_height="28dp"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:background="@android:color/transparent"
             android:src="@drawable/ic_plus"
             android:tint="#8890BB"
             android:padding="6dp" />
@@ -369,14 +369,14 @@
             android:id="@+id/btn_call_down"
             android:layout_width="28dp"
             android:layout_height="28dp"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:background="@android:color/transparent"
             android:src="@drawable/ic_minus"
             android:tint="#8890BB"
             android:padding="6dp" />
 
         <ProgressBar
             android:id="@+id/progress_call"
-            style="?android:attr/progressBarStyleHorizontal"
+            style="@android:style/Widget.ProgressBar.Horizontal"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -389,7 +389,7 @@
             android:id="@+id/btn_call_up"
             android:layout_width="28dp"
             android:layout_height="28dp"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:background="@android:color/transparent"
             android:src="@drawable/ic_plus"
             android:tint="#8890BB"
             android:padding="6dp" />

@@ -64,11 +64,43 @@ class VolumeQApp : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
+        Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
+            val prefs = getSharedPreferences("crash_prefs", android.content.Context.MODE_PRIVATE)
+            prefs.edit().putString("crash_log", throwable.stackTraceToString()).commit()
+            defaultHandler?.uncaughtException(thread, throwable) ?: kotlin.system.exitProcess(1)
+        }
+
         startVolumeService()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             notifPermLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
         }
         setContent {
+            val prefs = getSharedPreferences("crash_prefs", android.content.Context.MODE_PRIVATE)
+            var crashLog by remember { mutableStateOf(prefs.getString("crash_log", null)) }
+
+            if (crashLog != null) {
+                VolumeQTheme {
+                    Surface(color = Color.Red, modifier = Modifier.fillMaxSize()) {
+                        Column(modifier = Modifier.padding(16.dp).verticalScroll(rememberScrollState())) {
+                            Text("FATAL CRASH DETECTED", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 24.sp)
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text("Please screenshot this exact text and send it to me:", color = Color.White)
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(crashLog!!, color = Color.White, fontSize = 10.sp, fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace)
+                            Spacer(modifier = Modifier.height(24.dp))
+                            Button(onClick = { 
+                                prefs.edit().remove("crash_log").apply()
+                                crashLog = null
+                            }) {
+                                Text("Clear Crash Log")
+                            }
+                        }
+                    }
+                }
+                return@setContent
+            }
+
             VolumeQTheme {
                 val vm: VolumeViewModel = viewModel()
                 val state by vm.volumeState.collectAsState()

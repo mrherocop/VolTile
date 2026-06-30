@@ -37,12 +37,18 @@ fun VolumeQTheme(
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
-            val window = (view.context as Activity).window
-            // Keep status bar and nav bar matching our dark background
-            window.statusBarColor = Color(0xFF0D0D1A).toArgb()
-            window.navigationBarColor = Color(0xFF0D0D1A).toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
-            WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = false
+            var context = view.context
+            while (context is android.content.ContextWrapper) {
+                if (context is Activity) break
+                context = context.baseContext
+            }
+            if (context is Activity) {
+                val window = context.window
+                window.statusBarColor = Color(0xFF0D0D1A).toArgb()
+                window.navigationBarColor = Color(0xFF0D0D1A).toArgb()
+                WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
+                WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = false
+            }
         }
     }
 

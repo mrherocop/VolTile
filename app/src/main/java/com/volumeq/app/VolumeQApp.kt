@@ -41,6 +41,20 @@ import com.volumeq.app.service.VolumeService
 import com.volumeq.app.ui.theme.*
 import com.volumeq.app.viewmodel.VolumeViewModel
 
+// ─── SONIQ Neo-Brutalist Colors (Inline to match v2.1 pattern) ────────
+private val Lime            = Color(0xFFCCFF00)
+private val Black           = Color(0xFF000000)
+private val White           = Color(0xFFFFFFFF)
+private val Magenta         = Color(0xFFFF00FF)
+private val Cyan            = Color(0xFF00FFFF)
+private val Purple          = Color(0xFF7000FF)
+private val SliderGreen     = Color(0xFF22C55E)
+private val SliderBlue      = Color(0xFF1D4ED8)
+private val SliderOrange    = Color(0xFFEA580C)
+private val SliderLightBlue = Color(0xFF93C5FD)
+private val BatteryOrange   = Color(0xFFFF5500)
+private val ShadowBlack     = Color(0xFF000000)
+
 // ─── Activity ────────────────────────────────────────────────
 class VolumeQApp : ComponentActivity() {
 
@@ -85,7 +99,8 @@ class VolumeQApp : ComponentActivity() {
 
     private fun startVolumeService() {
         val i = Intent(this, VolumeService::class.java)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(i) else startService(i)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(i)
+        else startService(i)
     }
 
     private fun requestBatteryOptimization() {
@@ -104,7 +119,7 @@ class VolumeQApp : ComponentActivity() {
     }
 }
 
-// ─── Root Screen ─────────────────────────────────────────────
+// ─── Main Screen (SONIQ Brutalist Port) ──────────────────────
 @Composable
 fun SoniqMainScreen(
     state: VolumeState,
@@ -127,26 +142,41 @@ fun SoniqMainScreen(
     ) {
         Column(
             modifier = Modifier
+                .fillMaxHeight()
                 .widthIn(max = 450.dp)
-                .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
-                .statusBarsPadding()
-                .navigationBarsPadding()
-                .padding(horizontal = 20.dp, vertical = 20.dp),
+                .padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // ── Header ──
             SoniqHeader()
 
-            // ── Ringer Mode Buttons ──
-            RingerModeSection(state.ringerMode, onRingerMode)
+            // ── Ringer Mode Selection ──
+            RingerModeSection(
+                currentMode = state.ringerMode,
+                onModeChange = onRingerMode
+            )
 
             // ── Volume Streams ──
-            VolumeStreamsCard(state, onMedia, onRing, onAlarm, onCall, onNotification)
+            VolumeStreamsCard(
+                state = state,
+                onMedia = onMedia,
+                onRing = onRing,
+                onAlarm = onAlarm,
+                onNotification = onNotification,
+                onCall = onCall
+            )
 
-            // ── Link Buttons ──
-            LinkButtonsRow(onGitHub, onLinkedIn, onInstagram)
+            // ── Social Links ──
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                SocialButton("GITHUB", AccBlue, Modifier.weight(1f), onGitHub)
+                SocialButton("LINKEDIN", Magenta, Modifier.weight(1f), onLinkedIn)
+                SocialButton("INSTAGRAM", Color(0xFFFFFF00), Modifier.weight(1f), onInstagram)
+            }
 
             // ── Battery Button ──
             BatteryOptButton(onBatteryOpt)
@@ -231,8 +261,6 @@ fun RingerModeButton(
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
-    // When selected: translate(8,8) + no shadow (permanently pressed)
-    // When not selected: full 8dp shadow, no translate
     val offsetDp = if (selected) 8.dp else 0.dp
     val shadowDp = if (selected) 0.dp else 8.dp
 
@@ -281,8 +309,8 @@ fun VolumeStreamsCard(
     onMedia: (Int) -> Unit,
     onRing: (Int) -> Unit,
     onAlarm: (Int) -> Unit,
-    onCall: (Int) -> Unit,
     onNotification: (Int) -> Unit,
+    onCall: (Int) -> Unit,
 ) {
     BrutalistCard(background = White, shadowOffset = 8.dp) {
         Column(
@@ -322,7 +350,7 @@ fun VolumeStreamsCard(
                 onValueChange = onCall
             )
             SoniqSliderRow(
-                iconRes = R.drawable.ic_notif,
+                iconRes = R.drawable.ic_open_new,
                 currentVolume = state.notificationVolume,
                 maxVolume = state.notificationMax,
                 trackColor = SliderGreen,
@@ -340,178 +368,184 @@ fun SoniqSliderRow(
     maxVolume: Int,
     trackColor: Color,
     contentDescription: String,
-    onValueChange: (Int) -> Unit,
+    onValueChange: (Int) -> Unit
 ) {
-    val pct = if (maxVolume > 0) (currentVolume * 100 / maxVolume) else 0
+    val pct = if (maxVolume > 0) (currentVolume * 100) / maxVolume else 0
 
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Icon box: #CCFF00 with 4px black border, 56×56
+        // Icon Box
         Box(
             modifier = Modifier
                 .size(56.dp)
-                .border(4.dp, Black)
-                .background(Lime),
+                .background(Lime)
+                .border(4.dp, Black),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 painter = painterResource(iconRes),
                 contentDescription = contentDescription,
                 tint = Black,
-                modifier = Modifier.size(28.dp)
+                modifier = Modifier.size(32.dp)
             )
         }
 
-        // Slider + percentage
-        Row(
-            modifier = Modifier.weight(1f),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        // Slider component
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .height(48.dp),
+            contentAlignment = Alignment.CenterStart
         ) {
+            // Track background
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(10.dp)
+                    .border(3.dp, Black)
+                    .background(White)
+            ) {
+                // Track fill
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth(if (maxVolume > 0) currentVolume.toFloat() / maxVolume else 0f)
+                        .background(trackColor)
+                )
+            }
+
+            // Slider thumb logic wrapped inside standard slider for interaction
             Slider(
                 value = currentVolume.toFloat(),
                 onValueChange = { onValueChange(it.toInt()) },
-                valueRange = 0f..maxVolume.toFloat().coerceAtLeast(1f),
-                modifier = Modifier.weight(1f),
+                valueRange = 0f..(maxVolume.toFloat().coerceAtLeast(1f)),
+                steps = maxVolume - 1,
                 colors = SliderDefaults.colors(
-                    thumbColor = Black,
-                    activeTrackColor = trackColor,
-                    inactiveTrackColor = White,
+                    thumbColor = Color.Transparent,
+                    activeTrackColor = Color.Transparent,
+                    inactiveTrackColor = Color.Transparent,
                     activeTickColor = Color.Transparent,
-                    inactiveTickColor = Color.Transparent,
-                )
-            )
-            Text(
-                text = "$pct%",
-                color = Black,
-                fontFamily = SpaceGroteskFamily,
-                fontWeight = FontWeight.Black,
-                fontSize = 18.sp,
-                textAlign = TextAlign.End,
-                modifier = Modifier.width(52.dp)
+                    inactiveTickColor = Color.Transparent
+                ),
+                thumb = {
+                    Box(
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(Black)
+                            .drawBehind {
+                                drawRect(
+                                    color = Color.White.copy(alpha = 0.75f),
+                                    topLeft = Offset(0f, 0f),
+                                    size = Size(4.dp.toPx(), 4.dp.toPx())
+                                )
+                                drawRect(
+                                    color = Color.Black.copy(alpha = 0.85f),
+                                    topLeft = Offset(size.width - 4.dp.toPx(), size.height - 4.dp.toPx()),
+                                    size = Size(4.dp.toPx(), 4.dp.toPx())
+                                )
+                            }
+                    )
+                }
             )
         }
-    }
-}
 
-// ─── Link Buttons Row ────────────────────────────────────────
-@Composable
-fun LinkButtonsRow(
-    onGitHub: () -> Unit,
-    onLinkedIn: () -> Unit,
-    onInstagram: () -> Unit,
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        LinkButton("GITHUB",    Cyan,    Modifier.weight(1f), onGitHub)
-        LinkButton("LINKEDIN",  Magenta, Modifier.weight(1f), onLinkedIn)
-        LinkButton("INSTAGRAM", Color(0xFFFFFF00), Modifier.weight(1f), onInstagram)
-    }
-}
-
-@Composable
-fun LinkButton(
-    label: String,
-    hoverColor: Color,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit,
-) {
-    var pressed by remember { mutableStateOf(false) }
-    val offsetDp = if (pressed) 8.dp else 0.dp
-    val shadowDp = if (pressed) 0.dp else 8.dp
-
-    Box(
-        modifier = modifier
-            .offset(x = offsetDp, y = offsetDp)
-            .brutalistShadow(shadowDp)
-            .border(4.dp, Black, RoundedCornerShape(8.dp))
-            .clip(RoundedCornerShape(8.dp))
-            .background(White)
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null
-            ) {
-                pressed = !pressed
-                onClick()
-            }
-            .padding(vertical = 16.dp, horizontal = 4.dp),
-        contentAlignment = Alignment.Center
-    ) {
+        // Percentage text
         Text(
-            text = label,
+            text = "$pct%",
             color = Black,
             fontFamily = SpaceGroteskFamily,
             fontWeight = FontWeight.Black,
-            fontSize = 13.sp,
-            textAlign = TextAlign.Center,
-            letterSpacing = 0.sp,
+            fontSize = 20.sp,
+            modifier = Modifier.width(52.dp),
+            textAlign = TextAlign.End
         )
     }
 }
 
-// ─── Battery Button ──────────────────────────────────────────
+// ─── Buttons ─────────────────────────────────────────────────
+@Composable
+fun SocialButton(
+    text: String,
+    hoverBg: Color,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    BrutalistCard(background = White, shadowOffset = 8.dp, modifier = modifier) {
+        Box(
+            modifier = Modifier
+                .clickable(onClick = onClick)
+                .fillMaxWidth()
+                .padding(vertical = 16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = text,
+                color = Black,
+                fontFamily = SpaceGroteskFamily,
+                fontWeight = FontWeight.Black,
+                fontSize = 14.sp,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
 @Composable
 fun BatteryOptButton(onClick: () -> Unit) {
-    var pressed by remember { mutableStateOf(false) }
-    val offsetDp = if (pressed) 8.dp else 0.dp
-    val shadowDp = if (pressed) 0.dp else 8.dp
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .offset(x = offsetDp, y = offsetDp)
-            .brutalistShadow(shadowDp)
-            .border(4.dp, Black, RoundedCornerShape(8.dp))
-            .clip(RoundedCornerShape(8.dp))
-            .background(BatteryOrange)
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null
-            ) {
-                pressed = !pressed
-                onClick()
-            }
-            .padding(vertical = 16.dp, horizontal = 20.dp),
-        contentAlignment = Alignment.Center
-    ) {
+    BrutalistCard(background = BatteryOrange, shadowOffset = 8.dp) {
         Row(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onClick)
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                painter = painterResource(R.drawable.ic_volume_outline),
+                painter = painterResource(R.drawable.ic_alarm),
                 contentDescription = null,
                 tint = Black,
-                modifier = Modifier.size(28.dp)
+                modifier = Modifier.size(32.dp)
             )
+            Spacer(modifier = Modifier.width(16.dp))
             Text(
                 text = "DISABLE BATTERY OPTIMISATION",
                 color = Black,
                 fontFamily = SpaceGroteskFamily,
                 fontWeight = FontWeight.Black,
-                fontSize = 15.sp,
-                letterSpacing = 0.sp,
-                textAlign = TextAlign.Center,
+                fontSize = 16.sp,
+                textAlign = TextAlign.Center
             )
         }
     }
 }
 
-// ─── Brutalist Card ──────────────────────────────────────────
+// ─── Modifiers ───────────────────────────────────────────────
+fun Modifier.brutalistShadow(offset: Dp = 8.dp): Modifier =
+    this
+        .padding(bottom = offset, end = offset)
+        .drawBehind {
+            val offsetPx = offset.toPx()
+            drawRect(
+                color = ShadowBlack,
+                topLeft = Offset(offsetPx, offsetPx),
+                size = Size(size.width, size.height)
+            )
+        }
+
 @Composable
 fun BrutalistCard(
-    background: Color = White,
+    background: Color,
     shadowOffset: Dp = 8.dp,
+    modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = modifier
             .brutalistShadow(shadowOffset)
             .border(4.dp, Black, RoundedCornerShape(8.dp))
             .clip(RoundedCornerShape(8.dp))
@@ -520,19 +554,3 @@ fun BrutalistCard(
         content()
     }
 }
-
-// ─── Shadow Modifier ─────────────────────────────────────────
-// Hard-edge neo-brutalist black shadow: draws a solid black rectangle
-// offset by (offset, offset) below/right of the component, exactly as the
-// CSS `box-shadow: 8px 8px 0px 0px rgba(0,0,0,1)` does in the HTML.
-fun Modifier.brutalistShadow(offset: Dp = 8.dp): Modifier =
-    this
-        .padding(bottom = offset, end = offset)
-        .drawBehind {
-            val offsetPx = offset.toPx()
-            drawRect(
-                color = ShadowBlack,
-                topLeft = androidx.compose.ui.geometry.Offset(offsetPx, offsetPx),
-                size = Size(size.width, size.height)
-            )
-        }

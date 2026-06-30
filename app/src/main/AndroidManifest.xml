@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
@@ -36,18 +36,14 @@
         <service
             android:name=".service.VolumeService"
             android:exported="false"
-            android:foregroundServiceType="specialUse"
-            android:stopWithTask="false">
-            <property
-                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="persistent_volume_controller" />
-        </service>
+            android:foregroundServiceType="mediaPlayback"
+            android:stopWithTask="false" />
 
         <!-- Quick Settings Tile -->
         <service
             android:name=".tile.VolumeTileService"
             android:exported="true"
-            android:label="@string/tile_label"
+            android:label="Volume"
             android:icon="@drawable/ic_volume_outline"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
             <intent-filter>

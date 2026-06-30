@@ -49,4 +49,8 @@ class VolumeViewModel(application: Application) : AndroidViewModel(application) 
     fun setRingerMode(mode: Int) {
         repository.setRingerMode(mode)
     }
+
+    fun setAppVolume(packageName: String, volume: Int) {
+        repository.setAppVolume(packageName, volume)
+    }
 }

@@ -11,8 +11,8 @@ android {
         applicationId = "com.volumeq.app"
         minSdk = 29
         targetSdk = 35
-        versionCode = 13
-        versionName = "4.8-debug"
+        versionCode = 14
+        versionName = "4.9-debug-2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

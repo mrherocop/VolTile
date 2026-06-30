@@ -57,7 +57,11 @@ class VolumeService : Service() {
             addAction("android.media.VOLUME_CHANGED_ACTION")
             addAction(AudioManager.RINGER_MODE_CHANGED_ACTION)
         }
-        registerReceiver(systemVolumeReceiver, filter)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(systemVolumeReceiver, filter, Context.RECEIVER_EXPORTED)
+        } else {
+            registerReceiver(systemVolumeReceiver, filter)
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -142,7 +146,7 @@ class VolumeService : Service() {
             val intent = Intent(android.provider.Settings.ACTION_NOTIFICATION_POLICY_ACCESS_SETTINGS).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
-            startActivity(intent)
+            runCatching { startActivity(intent) }
         }
     }
 

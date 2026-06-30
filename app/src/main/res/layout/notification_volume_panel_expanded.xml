@@ -130,7 +130,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:max="100"
-            android:progress="50"
+            android:progress="50" />
 
         <ImageButton
             android:id="@+id/btn_media_up"
@@ -187,7 +187,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:max="100"
-            android:progress="50"
+            android:progress="50" />
 
         <ImageButton
             android:id="@+id/btn_ring_up"
@@ -244,7 +244,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:max="100"
-            android:progress="50"
+            android:progress="50" />
 
         <ImageButton
             android:id="@+id/btn_alarm_up"
@@ -301,7 +301,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:max="100"
-            android:progress="50"
+            android:progress="50" />
 
         <ImageButton
             android:id="@+id/btn_notification_up"
@@ -358,7 +358,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:max="100"
-            android:progress="50"
+            android:progress="50" />
 
         <ImageButton
             android:id="@+id/btn_call_up"

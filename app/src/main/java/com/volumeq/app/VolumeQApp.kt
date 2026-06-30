@@ -173,7 +173,7 @@ fun SoniqMainScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                SocialButton("GITHUB", AccBlue, Modifier.weight(1f), onGitHub)
+                SocialButton("GITHUB", Color(0xFF5B7BFF), Modifier.weight(1f), onGitHub)
                 SocialButton("LINKEDIN", Magenta, Modifier.weight(1f), onLinkedIn)
                 SocialButton("INSTAGRAM", Color(0xFFFFFF00), Modifier.weight(1f), onInstagram)
             }
@@ -361,6 +361,7 @@ fun VolumeStreamsCard(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SoniqSliderRow(
     iconRes: Int,

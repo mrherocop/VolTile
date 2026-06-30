@@ -3,6 +3,7 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
+    <!-- Bell body (silent/crossed) -->
     <path android:fillColor="#00000000" android:strokeColor="#000000" android:strokeWidth="2.5" android:strokeLineCap="round" android:strokeLineJoin="round"
         android:pathData="M13.73,21a2,2 0,0 1,-3.46 0"/>
     <path android:fillColor="#00000000" android:strokeColor="#000000" android:strokeWidth="2.5" android:strokeLineCap="round" android:strokeLineJoin="round"
@@ -11,6 +12,7 @@
         android:pathData="M6.26,6.26A5.86,5.86 0,0 0,6 8c0,7 -3,9 -3,9h14"/>
     <path android:fillColor="#00000000" android:strokeColor="#000000" android:strokeWidth="2.5" android:strokeLineCap="round" android:strokeLineJoin="round"
         android:pathData="M18,8a6,6 0,0 0,-9.33 -5"/>
-    <line android:strokeColor="#000000" android:strokeWidth="2.5" android:strokeLineCap="round"
-        android:x1="1" android:y1="1" android:x2="23" android:y2="23"/>
+    <!-- Diagonal strike-through line: M1,1 L23,23 -->
+    <path android:fillColor="#00000000" android:strokeColor="#000000" android:strokeWidth="2.5" android:strokeLineCap="round"
+        android:pathData="M1,1 L23,23"/>
 </vector>

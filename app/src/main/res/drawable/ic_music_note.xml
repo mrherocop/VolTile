@@ -3,10 +3,13 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
+    <!-- Music staff line -->
     <path android:fillColor="#00000000" android:strokeColor="#000000" android:strokeWidth="2.5" android:strokeLineCap="round" android:strokeLineJoin="round"
         android:pathData="M9,18V5l12,-2v13"/>
-    <circle android:fillColor="#00000000" android:strokeColor="#000000" android:strokeWidth="2.5"
-        android:cx="6" android:cy="18" android:r="3"/>
-    <circle android:fillColor="#00000000" android:strokeColor="#000000" android:strokeWidth="2.5"
-        android:cx="18" android:cy="16" android:r="3"/>
+    <!-- Circle at cx=6, cy=18, r=3: M6,15 A3,3 0 1,0 6.001,15 Z -->
+    <path android:fillColor="#00000000" android:strokeColor="#000000" android:strokeWidth="2.5"
+        android:pathData="M6,15 A3,3 0,1 0,6.001,15 Z"/>
+    <!-- Circle at cx=18, cy=16, r=3 -->
+    <path android:fillColor="#00000000" android:strokeColor="#000000" android:strokeWidth="2.5"
+        android:pathData="M18,13 A3,3 0,1 0,18.001,13 Z"/>
 </vector>

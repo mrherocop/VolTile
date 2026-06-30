@@ -200,8 +200,8 @@ fun SoniqMainScreen(
                 .fillMaxHeight()
                 .widthIn(max = 450.dp)
                 .verticalScroll(rememberScrollState())
-                .padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // ── Header ──
@@ -249,7 +249,7 @@ fun SoniqHeader() {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 20.dp),
+                .padding(vertical = 8.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -257,9 +257,9 @@ fun SoniqHeader() {
                 color = Black,
                 fontFamily = androidx.compose.ui.text.font.FontFamily.SansSerif,
                 fontWeight = FontWeight.Black,
-                fontSize = 72.sp,
+                fontSize = 48.sp,
                 letterSpacing = (-2).sp,
-                lineHeight = 72.sp,
+                lineHeight = 48.sp,
                 textAlign = TextAlign.Center,
             )
         }
@@ -331,7 +331,7 @@ fun RingerModeButton(
                 indication = null,
                 onClick = onClick
             )
-            .padding(vertical = 16.dp, horizontal = 4.dp),
+            .padding(vertical = 8.dp, horizontal = 4.dp),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -342,14 +342,14 @@ fun RingerModeButton(
                 painter = painterResource(iconRes),
                 contentDescription = label,
                 tint = textColor,
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier.size(24.dp)
             )
             Text(
                 text = label,
                 color = textColor,
                 fontFamily = androidx.compose.ui.text.font.FontFamily.SansSerif,
                 fontWeight = FontWeight.Bold,
-                fontSize = 14.sp,
+                fontSize = 11.sp,
                 letterSpacing = 0.sp,
                 textAlign = TextAlign.Center,
             )
@@ -369,8 +369,8 @@ fun VolumeStreamsCard(
 ) {
     BrutalistCard(background = White, shadowOffset = 8.dp) {
         Column(
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             SoniqSliderRow(
                 iconRes = R.drawable.ic_music_note,
@@ -431,12 +431,12 @@ fun SoniqSliderRow(
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         // Icon Box
         Box(
             modifier = Modifier
-                .size(56.dp)
+                .size(40.dp)
                 .background(Lime)
                 .border(4.dp, Black),
             contentAlignment = Alignment.Center
@@ -445,7 +445,7 @@ fun SoniqSliderRow(
                 painter = painterResource(iconRes),
                 contentDescription = contentDescription,
                 tint = Black,
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier.size(24.dp)
             )
         }
 
@@ -453,7 +453,7 @@ fun SoniqSliderRow(
         Box(
             modifier = Modifier
                 .weight(1f)
-                .height(48.dp),
+                .height(36.dp),
             contentAlignment = Alignment.CenterStart
         ) {
             // Track background
@@ -514,9 +514,9 @@ fun SoniqSliderRow(
             text = "$pct%",
             color = Black,
             fontFamily = androidx.compose.ui.text.font.FontFamily.SansSerif,
-            fontWeight = FontWeight.Black,
-            fontSize = 20.sp,
-            modifier = Modifier.width(52.dp),
+                fontWeight = FontWeight.Black,
+                fontSize = 16.sp,
+                modifier = Modifier.width(42.dp),
             textAlign = TextAlign.End
         )
     }
@@ -535,7 +535,7 @@ fun SocialButton(
             modifier = Modifier
                 .clickable(onClick = onClick)
                 .fillMaxWidth()
-                .padding(vertical = 16.dp),
+                .padding(vertical = 10.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -543,7 +543,7 @@ fun SocialButton(
                 color = Black,
                 fontFamily = androidx.compose.ui.text.font.FontFamily.SansSerif,
                 fontWeight = FontWeight.Black,
-                fontSize = 14.sp,
+                fontSize = 10.sp,
                 textAlign = TextAlign.Center
             )
         }
@@ -557,7 +557,7 @@ fun BatteryOptButton(onClick: () -> Unit) {
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable(onClick = onClick)
-                .padding(16.dp),
+                .padding(10.dp),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -565,7 +565,7 @@ fun BatteryOptButton(onClick: () -> Unit) {
                 painter = painterResource(R.drawable.ic_alarm),
                 contentDescription = null,
                 tint = Black,
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier.size(24.dp)
             )
             Spacer(modifier = Modifier.width(16.dp))
             Text(
@@ -573,7 +573,7 @@ fun BatteryOptButton(onClick: () -> Unit) {
                 color = Black,
                 fontFamily = androidx.compose.ui.text.font.FontFamily.SansSerif,
                 fontWeight = FontWeight.Black,
-                fontSize = 16.sp,
+                fontSize = 12.sp,
                 textAlign = TextAlign.Center
             )
         }
